@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function NavBar() {
   return (
-    <nav className="fixed inset-x-0 top-4 mx-auto flex h-16 w-[1080px] items-center justify-between rounded-full bg-gray-500/10 px-4 py-4 font-bold tracking-[-0.03em] backdrop-blur-xl">
+    <nav className="fixed inset-x-0 top-4 z-50 mx-auto flex h-16 w-[1080px] items-center justify-between rounded-full bg-gray-500/10 px-4 py-4 font-bold tracking-[-0.03em] backdrop-blur-xl">
       <Link
         href="/"
         className="flex h-10 items-center justify-center rounded-full bg-white px-4"
