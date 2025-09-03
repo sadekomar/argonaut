@@ -7,10 +7,19 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import EPCMCard from "../components/EPCMCard";
+import { NavBar } from "./(home)/(components)/navbar";
+import { Hero } from "./(home)/(components)/hero";
+import { Footer } from "./(home)/(components)/footer";
+import { CTA } from "./(home)/(components)/CTA";
+import { TrustedByEgyptsTopCompanies } from "./(home)/(components)/TrustedByEgyptsTopCompanies";
 
 export default function Home() {
   return (
-    <div>
+    <>
+      <NavBar />
+      <Hero />
+      
+      <div>
       <div>
         <button>Hello</button>
       </div>
@@ -127,5 +136,10 @@ export default function Home() {
         </div>
       </div>
     </div>
+
+      <TrustedByEgyptsTopCompanies />
+      <CTA />
+      <Footer />
+    </>
   );
 }
