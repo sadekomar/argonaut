@@ -66,7 +66,7 @@ const contact = [
 export function Footer() {
   return (
     <>
-      <div className="relative flex min-h-[600px] flex-col justify-between bg-[#101828] px-4 py-14 md:px-20">
+      <div className="relative z-1 flex min-h-[600px] flex-col justify-between bg-[#101828] px-4 py-14 md:px-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[3fr_1fr_1fr_1fr_1fr]">
           <div>
             <h3 className="font-bold text-white">Argonaut</h3>
@@ -150,8 +150,8 @@ export function Footer() {
           Copyright © {new Date().getFullYear()} Argonaut. All Rights Reserved.
         </div>
         <div
-          className="absolute top-40 left-0 w-full overflow-hidden font-black tracking-[-0.03em] text-clip whitespace-nowrap text-[#c5c5c539]"
-          style={{ fontSize: "18.5vw", lineHeight: 1 }}
+          className="absolute top-40 left-0 z-[-1] w-full overflow-hidden font-black tracking-[-0.03em] text-clip whitespace-nowrap text-[#c5c5c539] select-none"
+          style={{ fontSize: "18.5vw", lineHeight: 1, userSelect: "none" }}
         >
           ARGONAUT
         </div>

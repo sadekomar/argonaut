@@ -7,9 +7,9 @@ type Props = {
 
 export default function EPCMCard({ Icon, title }: Props) {
   return (
-    <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
-      <Icon className="w-12 h-12 stroke-[#8390FA]" />
-      <div className="text-[#808080] font-medium text-lg">{title}</div>
+    <div className="flex flex-col justify-between rounded-md bg-neutral-100 p-6">
+      <Icon className="h-12 w-12 stroke-[#8390FA]" />
+      <div className="text-lg font-medium text-[#808080]">{title}</div>
     </div>
   );
 }
