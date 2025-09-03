@@ -6,6 +6,7 @@ import {
   HardHat,
   ClipboardCheck,
 } from "lucide-react";
+import EPCMCard from "../components/EPCMCard";
 
 export default function Home() {
   return (
@@ -72,30 +73,22 @@ export default function Home() {
               </p>
               {/* EPCM cards */}
               <div className="grid grid-cols-2 gap-4 mt-8 h-full box-border">
-                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
-                  <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
-                  <div className="text-[#808080] font-medium text-lg">
-                    Engineering Design & 3D Modeling
-                  </div>
-                </div>
-                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
-                  <Handshake className="w-12 h-12 stroke-[#8390FA]" />
-                  <div className="text-[#808080] font-medium text-lg">
-                    Procurement & Vendor Management
-                  </div>
-                </div>
-                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
-                  <HardHat className="w-12 h-12 stroke-[#8390FA]" />
-                  <div className="text-[#808080] font-medium text-lg">
-                    On-site Construction & Quality Control
-                  </div>
-                </div>
-                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
-                  <ClipboardCheck className="w-12 h-12 stroke-[#8390FA]" />
-                  <div className="text-[#808080] font-medium text-lg max-w-50">
-                    Testing & Commissioning
-                  </div>
-                </div>
+                <EPCMCard
+                  Icon={DraftingCompass}
+                  title="Engineering Design & 3D Modeling"
+                />
+                <EPCMCard
+                  Icon={Handshake}
+                  title="Procurement & Vendor Management"
+                />
+                <EPCMCard
+                  Icon={HardHat}
+                  title="On-site Construction & Quality Control"
+                />
+                <EPCMCard
+                  Icon={ClipboardCheck}
+                  title="Testing & Commissioning"
+                />
               </div>
             </div>
           </div>
