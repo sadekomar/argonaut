@@ -1,5 +1,11 @@
 import Image from "next/image";
-import { DraftingCompass, ChevronRight } from "lucide-react";
+import {
+  DraftingCompass,
+  ChevronRight,
+  Handshake,
+  HardHat,
+  ClipboardCheck,
+} from "lucide-react";
 
 export default function Home() {
   return (
@@ -46,6 +52,7 @@ export default function Home() {
                 Integrated design and planning for power, HVAC, and controls
                 systems
               </p>
+              {/* MEP Image */}
               <Image
                 src={"/mep.jpg"}
                 width={0}
@@ -58,38 +65,35 @@ export default function Home() {
             {/* divider */}
             <div className="border-l border-black opacity-10 self-stretch"></div>
             {/* right section */}
-            <div className="flex-1 py-14 pl-12">
+            <div className="flex-1 py-14 pl-12 flex flex-col min-h-0">
               <h2 className="text-xl font-medium">EPCM Service Highlights</h2>
               <p className="text-[#707070] font-medium">
                 Covering all stages from concept to commissioning
               </p>
-              <div className="flex flex-col gap-6 mt-8">
-                <div className="flex flex-row gap-4 h-full">
-                  <div className="bg-neutral-100 p-6 flex flex-col">
-                    <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
-                    <div className="text-[#808080] font-medium text-lg">
-                      Engineering Design & 3D Modeling
-                    </div>
-                  </div>
-                  <div className="bg-neutral-100 p-6 flex flex-col">
-                    <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
-                    <div className="text-[#808080] font-medium text-lg">
-                      Engineering Design & 3D Modeling
-                    </div>
+              {/* EPCM cards */}
+              <div className="grid grid-cols-2 gap-4 mt-8 h-full box-border">
+                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
+                  <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
+                  <div className="text-[#808080] font-medium text-lg">
+                    Engineering Design & 3D Modeling
                   </div>
                 </div>
-                <div className="flex flex-row gap-4 h-full">
-                  <div className="bg-neutral-100 p-6 flex flex-col">
-                    <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
-                    <div className="text-[#808080] font-medium text-lg">
-                      Engineering Design & 3D Modeling
-                    </div>
+                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
+                  <Handshake className="w-12 h-12 stroke-[#8390FA]" />
+                  <div className="text-[#808080] font-medium text-lg">
+                    Procurement & Vendor Management
                   </div>
-                  <div className="bg-neutral-100 p-6 flex flex-col">
-                    <DraftingCompass className="w-12 h-12 stroke-[#8390FA]" />
-                    <div className="text-[#808080] font-medium text-lg">
-                      Engineering Design & 3D Modeling
-                    </div>
+                </div>
+                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
+                  <HardHat className="w-12 h-12 stroke-[#8390FA]" />
+                  <div className="text-[#808080] font-medium text-lg">
+                    On-site Construction & Quality Control
+                  </div>
+                </div>
+                <div className="bg-neutral-100 p-6 flex flex-col justify-between rounded-md">
+                  <ClipboardCheck className="w-12 h-12 stroke-[#8390FA]" />
+                  <div className="text-[#808080] font-medium text-lg max-w-50">
+                    Testing & Commissioning
                   </div>
                 </div>
               </div>
