@@ -5,6 +5,10 @@
   --foreground: #171717;
 }
 
+@theme {
+  --breakpoint-base: 900px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -54,4 +58,23 @@ body {
     1 stretch;
   border-image-slice: 1;
   border-image-repeat: repeat;
+}
+
+.backgroundGrayGradient {
+  @apply base:py-40 justify-items-center bg-[linear-gradient(180deg,_#F5F5F5_0%,_#FFFFFF_100%)] px-8 py-28;
+}
+.heading1 {
+  @apply max-w-160 text-3xl font-semibold sm:text-4xl;
+}
+
+.heading2 {
+  @apply text-lg font-medium sm:text-xl;
+}
+
+.description1 {
+  @apply text-base font-medium sm:text-lg;
+}
+
+.description2 {
+  @apply text-sm font-medium sm:text-base;
 }
