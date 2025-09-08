@@ -6,6 +6,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import EPCCard from "@/components/epc-card";
+import SpotlightCard from "@/components/spotlight-card";
+import EPCServiceHighlights from "./epc-service-highlights";
 
 export function FullEPCForMEPSection() {
   return (
@@ -62,18 +64,7 @@ function AdvancedMEPEngineering() {
         <p className="description2 text-[#707070]">
           Covering all stages from concept to commissioning
         </p>
-        <div className="mt-8 box-border grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
-          <EPCCard
-            Icon={DraftingCompass}
-            title="Engineering Design & 3D Modeling"
-          />
-          <EPCCard Icon={Handshake} title="Procurement & Vendor Management" />
-          <EPCCard
-            Icon={HardHat}
-            title="On-site Construction & Quality Control"
-          />
-          <EPCCard Icon={ClipboardCheck} title="Testing & Commissioning" />
-        </div>
+        <EPCServiceHighlights />
       </div>
     </div>
   );
