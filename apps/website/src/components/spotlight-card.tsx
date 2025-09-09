@@ -14,7 +14,7 @@ interface SpotlightCardProps extends React.PropsWithChildren {
 
 const SpotlightCard: React.FC<SpotlightCardProps> = ({
   className = "",
-  spotlightColor = "rgba(102, 102, 102, 0.25)",
+  spotlightColor = "rgba(102, 102, 102, 0.45)",
   Icon,
   title,
 }) => {
@@ -56,7 +56,7 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
       onBlur={handleBlur}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`base:!gap-4 relative flex flex-col justify-between gap-4 overflow-hidden rounded-md border border-neutral-50 bg-neutral-100 p-4 sm:gap-6 sm:p-6 ${className}`}
+      className={`base:!gap-4 relative flex flex-col justify-between gap-4 overflow-hidden rounded-md border border-neutral-50 bg-neutral-100 p-4 sm:gap-6 sm:p-6 dark:border-neutral-900 dark:bg-neutral-950 ${className}`}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
@@ -65,8 +65,8 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
           background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`,
         }}
       />
-      <Icon className="base:h-10 base:w-10 h-8 w-8 stroke-[#8390FA]" />
-      <div className="description1 text-[#808080]">{title}</div>
+      <Icon className="base:h-10 base:w-10 h-8 w-8 stroke-indigo-400 dark:stroke-indigo-600" />
+      <div className="description1 text-zinc-500">{title}</div>
     </div>
   );
 };
