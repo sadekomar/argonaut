@@ -75,6 +75,8 @@ body {
 .backgroundGrayGradient {
   @apply base:py-40 justify-items-center bg-[linear-gradient(180deg,_#F5F5F5_0%,_#FFFFFF_100%)] px-8 py-28 dark:bg-[linear-gradient(180deg,_#0A0A0A_0%,_#000000_100%)];
 }
+
+/* going to remove this later */
 .heading1 {
   @apply max-w-160 text-3xl font-semibold sm:text-4xl;
 }
@@ -89,4 +91,32 @@ body {
 
 .description2 {
   @apply text-sm font-medium sm:text-base;
+}
+
+.h1 {
+  @apply text-[61.04px];
+}
+
+.h2 {
+  @apply text-[48.83px];
+}
+
+.h3 {
+  @apply text-[39.06px];
+}
+
+.h4 {
+  @apply text-[31.25px];
+}
+
+.h5 {
+  @apply text-[25px];
+}
+
+.h6 {
+  @apply text-[20px];
+}
+
+.p {
+  @apply text-[16px];
 }
