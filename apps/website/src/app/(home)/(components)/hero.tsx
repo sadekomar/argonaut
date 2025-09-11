@@ -11,9 +11,9 @@ export function Hero() {
         priority
         className="absolute inset-0 -z-10 w-full object-cover"
       />
-      <div className="z-10 flex flex-col items-center justify-center gap-6 px-4">
-        <h1 className="max-w-4xl text-center text-[80px] leading-[1em] font-bold tracking-[-0.03em] text-white">
-          Complete, integrated EPC solutions
+      <div className="z-10 flex max-w-[648px] flex-col items-center justify-center gap-6 px-4">
+        <h1 className="h1 font-bold text-white">
+          Trading partner & Engineering specialist
         </h1>
         <p className="max-w-2xl text-center text-xl leading-[1.5em] font-medium tracking-[-0.02em] text-white">
           We deliver full EPC solutions for complex mechanical, electrical, and
