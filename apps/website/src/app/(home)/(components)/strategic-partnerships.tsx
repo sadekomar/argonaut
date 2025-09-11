@@ -5,20 +5,22 @@ import Image from "next/image";
 export function StrategicPartnerships() {
   return (
     <div className="backgroundGrayGradient">
-      <div className="flex w-full max-w-300 flex-col gap-11 sm:gap-16">
-        <div className="flex max-w-190 flex-col items-start gap-4 sm:gap-6">
-          <div className="description1 max-w-115 !font-bold text-red-900">
+      <div className="flex w-full max-w-278 flex-col gap-11 sm:gap-16">
+        <div className="flex flex-col items-start gap-4 sm:gap-6">
+          <div className="h6 !font-bold text-red-900">
             Strategic Partnerships
           </div>
-          <h1 className="heading1">Innovating with Industry Leaders</h1>
-          <p className="description1 opacity-70">
-            We work with leading global companies to deliver advanced
-            engineering, procurement, and construction solutions. Together, we
-            bring expertise, innovation, and sustainability to projects across
-            oil & gas, defense, and infrastructure sectors.
+          <h1 className="h3 max-sm:text-[31.25px]">
+            Trading partners with industry leaders
+          </h1>
+          <p className="h6 opacity-70">
+            We supply HVAC, fire safety, and MEP equipment with fast delivery
+            and commissioning support, helping contractors and integrators
+            achieve reliable system performance across oil & gas, industrial,
+            marine, and commercial projects.
           </p>
-          <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-red-900 fill-white px-3 py-2.5">
-            <span className="description2 text-white">
+          <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-red-900 fill-white px-4 py-2.5">
+            <span className="p font-bold text-white">
               Discover Our Global Network
             </span>
             <ChevronRight className="h-4 w-4 stroke-white" />
@@ -69,14 +71,26 @@ export function StrategicPartnerships() {
         />
         <DashedDivider />
         <DisplayedPartner
-          image="volute-logo.svg"
+          image="volute-logo.png"
           name="Volute"
+          grayscale={true}
+        />
+        <DashedDivider />
+        <DisplayedPartner
+          image="red-shield-logo.png"
+          name="Red Shield"
           grayscale={true}
         />
         <DashedDivider />
         <DisplayedPartner
           image="pitsan-logo.png"
           name="Pitsan"
+          grayscale={true}
+        />
+        <DashedDivider />
+        <DisplayedPartner
+          image="gerpass-logo.png"
+          name="Gerpass"
           grayscale={true}
         />
       </div>
@@ -101,7 +115,7 @@ export function StrategicPartnerships() {
           height={0}
           src={`/partners/${image}`}
           alt={`${name}'s Logo`}
-          className="h-auto"
+          className="h-auto max-h-14 object-contain"
         />
       </div>
     );
@@ -138,7 +152,7 @@ export function StrategicPartnerships() {
             />
             <Newspaper className="h-6 w-6 stroke-white sm:h-10 sm:w-10" />
           </div>
-          <div className="text-lg font-semibold text-white sm:text-2xl">
+          <div className="h5 font-semibold text-white max-sm:!text-[20px]">
             Learn how Halton powers sustainable indoor air solutions for our
             projects
           </div>
@@ -151,31 +165,17 @@ export function StrategicPartnerships() {
     return (
       <div className="base:!flex base:!justify-around base:!flex-col base:max-w-62 base:!gap-y-0 flex flex-col justify-around gap-8 sm:grid sm:grid-cols-2 sm:gap-12 sm:gap-x-12 sm:gap-y-4">
         <PartnershipStat
-          title="50+ Years"
-          description="Halton powers clean air in 35+ countries with 50 years of innovation in demanding environments."
+          title="Advanced Dampers"
+          description="Reliable dampers for tunnels, marine, and industrial ventilation."
         />
         <PartnershipStat
-          title="35+ Countries"
-          description="Global locations delivering advanced indoor air solutions."
+          title="Air Distribution Systems"
+          description="Energy-efficient solutions that improve indoor air quality."
         />
-        <div>
-          <div className="flex flex-row items-center">
-            <div className="h-4 -translate-x-4 border-l-1 border-sky-500 sm:h-5"></div>
-            <h2 className="heading2 !font-bold">Solutions provided</h2>
-          </div>
-          <div className="flex flex-row items-center gap-2.5">
-            <Wind className="h-4 w-4 stroke-neutral-500" />
-            <div className="description2 text-neutral-500">
-              Ventilation Systems
-            </div>
-          </div>
-          <div className="flex flex-row items-center gap-2.5">
-            <Fan className="h-4 w-4 stroke-neutral-500" />
-            <div className="description2 text-neutral-500">
-              Air Distribution Technologies
-            </div>
-          </div>
-        </div>
+        <PartnershipStat
+          title="Specialized Ventilation"
+          description="Custom systems built for demanding environments."
+        />
       </div>
     );
 
@@ -190,10 +190,10 @@ export function StrategicPartnerships() {
         <div className="max-base:flex-1/3">
           <div className="flex flex-row items-center">
             <div className="h-4 -translate-x-4 border-l-1 border-sky-500 sm:h-5"></div>
-            <h2 className="heading2 !font-bold">{title}</h2>
+            <h2 className="h6 !font-bold max-sm:text-[16px]">{title}</h2>
           </div>
 
-          <p className="description2 text-neutral-500">{description}</p>
+          <p className="p text-neutral-500">{description}</p>
         </div>
       );
     }

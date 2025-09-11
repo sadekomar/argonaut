@@ -78,7 +78,7 @@ body {
 
 /* going to remove this later */
 .heading1 {
-  @apply max-w-160 text-3xl font-semibold sm:text-4xl;
+  @apply text-3xl font-semibold sm:text-4xl;
 }
 
 .heading2 {

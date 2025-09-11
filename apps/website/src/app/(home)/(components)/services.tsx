@@ -1,7 +1,7 @@
 import Image from "next/image";
 import EPCServiceHighlights from "./epc-service-highlights";
 
-export function FullEPCForMEPSection() {
+export function Services() {
   return (
     <div className="backgroundGrayGradient">
       <div className="max-w-300">
@@ -65,7 +65,7 @@ function AdvancedMEPEngineering() {
 function FullEPCForMEP() {
   return (
     <>
-      <h1 className="heading1 base:mb-5 mb-3.5">
+      <h1 className="h3 base:mb-5 mb-3.5 max-sm:text-[31.25px]">
         Full EPC Solutions for MEP Systems
       </h1>
       <div className="base:mb-14 relative mb-10 flex w-full flex-col">
