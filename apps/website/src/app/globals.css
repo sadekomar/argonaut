@@ -94,29 +94,29 @@ body {
 }
 
 .h1 {
-  @apply text-[61.04px];
+  @apply text-[61.04px] leading-[1.1em] tracking-[-0.03em];
 }
 
 .h2 {
-  @apply text-[48.83px];
+  @apply text-[48.83px] leading-[1.1em] tracking-[-0.03em];
 }
 
 .h3 {
-  @apply text-[39.06px];
+  @apply text-[39.06px] leading-[1.1em] tracking-[-0.03em];
 }
 
 .h4 {
-  @apply text-[31.25px];
+  @apply text-[31.25px] leading-[1.1em] tracking-[-0.03em];
 }
 
 .h5 {
-  @apply text-[25px];
+  @apply text-[25px] leading-[1.2em] tracking-[-0.03em];
 }
 
 .h6 {
-  @apply text-[20px];
+  @apply text-[20px] leading-[1.3em] tracking-[-0.03em];
 }
 
 .p {
-  @apply text-[16px];
+  @apply text-[16px] leading-[1.5em] tracking-[-0.03em];
 }
