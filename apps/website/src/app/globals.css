@@ -43,6 +43,18 @@ body {
   animation: marquee 30s linear infinite;
 }
 
+/* For Stats Section animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .custom-dashed-border-top {
   border-top: 0.5px solid transparent; /* Required for border-image to work */
   border-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12"><rect width="5" height="2" fill="%23808080"/></svg>')
@@ -61,7 +73,7 @@ body {
 }
 
 .backgroundGrayGradient {
-  @apply base:py-40 justify-items-center bg-[linear-gradient(180deg,_#F5F5F5_0%,_#FFFFFF_100%)] px-8 py-28;
+  @apply base:py-40 justify-items-center bg-[linear-gradient(180deg,_#F5F5F5_0%,_#FFFFFF_100%)] px-8 py-28 dark:bg-[linear-gradient(180deg,_#0A0A0A_0%,_#000000_100%)];
 }
 .heading1 {
   @apply max-w-160 text-3xl font-semibold sm:text-4xl;

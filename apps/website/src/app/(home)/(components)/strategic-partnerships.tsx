@@ -7,7 +7,7 @@ export function StrategicPartnerships() {
     <div className="backgroundGrayGradient">
       <div className="flex w-full max-w-300 flex-col gap-11 sm:gap-16">
         <div className="flex max-w-190 flex-col items-start gap-4 sm:gap-6">
-          <div className="description1 max-w-115 !font-bold text-[#811620]">
+          <div className="description1 max-w-115 !font-bold text-red-900">
             Strategic Partnerships
           </div>
           <h1 className="heading1">Innovating with Industry Leaders</h1>
@@ -17,7 +17,7 @@ export function StrategicPartnerships() {
             bring expertise, innovation, and sustainability to projects across
             oil & gas, defense, and infrastructure sectors.
           </p>
-          <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-[#811620] fill-white px-3 py-2.5">
+          <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-red-900 fill-white px-3 py-2.5">
             <span className="description2 text-white">
               Discover Our Global Network
             </span>
@@ -46,7 +46,7 @@ export function StrategicPartnerships() {
   function PartnerHorizontalLine({ active }: { active: boolean }) {
     return (
       <hr
-        className={`w-10 border-2 border-t ${active ? "border-[#00AEEF]" : "border-neutral-400"}`}
+        className={`w-10 border-2 border-t ${active ? "border-sky-500" : "border-neutral-400"}`}
       />
     );
   }
@@ -123,8 +123,8 @@ export function StrategicPartnerships() {
             className="h-auto max-h-105 w-full rounded-xl object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 rounded-xl bg-[#00AEEF20]"></div>
-          <div className="absolute inset-0 rounded-xl bg-[linear-gradient(180deg,_#00AEEF90_0%,_#00AEEF50_30%,_#00AEEF90_60%,_#00AEEF_100%)] sm:bg-[linear-gradient(180deg,_#00AEEF90_0%,_#00AEEF20_30%,_#00AEEF10_60%,_#00AEEF_100%)]"></div>
+          <div className="absolute inset-0 rounded-xl bg-[#00AEEF20] dark:bg-[#0078A320]"></div>
+          <div className="absolute inset-0 rounded-xl bg-[linear-gradient(180deg,_#00AEEF90_0%,_#00AEEF50_30%,_#00AEEF90_60%,_#00AEEF_100%)] sm:bg-[linear-gradient(180deg,_#00AEEF90_0%,_#00AEEF20_30%,_#00AEEF10_60%,_#00AEEF_100%)] dark:bg-[linear-gradient(180deg,_#0078A390_0%,_#0078A350_30%,_#0078A390_60%,_#0078A3_100%)] dark:sm:bg-[linear-gradient(180deg,_#0078A390_0%,_#0078A320_30%,_#0078A310_60%,_#0078A3_100%)]"></div>
         </div>
 
         <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6">
@@ -160,18 +160,18 @@ export function StrategicPartnerships() {
         />
         <div>
           <div className="flex flex-row items-center">
-            <div className="h-4 -translate-x-4 border-l-1 border-[#00AEEF] sm:h-5"></div>
+            <div className="h-4 -translate-x-4 border-l-1 border-sky-500 sm:h-5"></div>
             <h2 className="heading2 !font-bold">Solutions provided</h2>
           </div>
           <div className="flex flex-row items-center gap-2.5">
-            <Wind className="h-4 w-4 stroke-[#707070]" />
-            <div className="description2 text-[#707070]">
+            <Wind className="h-4 w-4 stroke-neutral-500" />
+            <div className="description2 text-neutral-500">
               Ventilation Systems
             </div>
           </div>
           <div className="flex flex-row items-center gap-2.5">
-            <Fan className="h-4 w-4 stroke-[#707070]" />
-            <div className="description2 text-[#707070]">
+            <Fan className="h-4 w-4 stroke-neutral-500" />
+            <div className="description2 text-neutral-500">
               Air Distribution Technologies
             </div>
           </div>
@@ -189,11 +189,11 @@ export function StrategicPartnerships() {
       return (
         <div className="max-base:flex-1/3">
           <div className="flex flex-row items-center">
-            <div className="h-4 -translate-x-4 border-l-1 border-[#00AEEF] sm:h-5"></div>
+            <div className="h-4 -translate-x-4 border-l-1 border-sky-500 sm:h-5"></div>
             <h2 className="heading2 !font-bold">{title}</h2>
           </div>
 
-          <p className="description2 text-[#707070]">{description}</p>
+          <p className="description2 text-neutral-500">{description}</p>
         </div>
       );
     }
