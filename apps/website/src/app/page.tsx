@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <TwoBusinessArms />
+      {/* <TwoBusinessArms /> */}
       <FullEPCForMEPSection />
       <StrategicPartnerships />
       {/* <Stats /> */}
