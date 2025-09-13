@@ -54,7 +54,7 @@ const contact = [
   {
     name: "LinkedIn",
     icon: <Linkedin className="h-4 w-4" />,
-    url: "https://www.linkedin.com/",
+    url: "https://www.linkedin.com/company/argonaut-egypt/",
   },
   {
     name: "Instagram",

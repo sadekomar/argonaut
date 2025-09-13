@@ -14,13 +14,13 @@ export function CTA() {
           </p>
           <div className="flex gap-2">
             <Link
-              href={"https://www.linkedin.com/"}
+              href={"https://www.linkedin.com/company/argonaut-egypt/"}
               className="flex h-10 items-center justify-center rounded-full bg-[#3F3F3F] px-4 font-bold text-white"
             >
               Get a Quote
             </Link>
             <Link
-              href={"https://www.linkedin.com/"}
+              href={"https://www.linkedin.com/company/argonaut-egypt/"}
               className="flex h-10 items-center justify-center rounded-full border border-black bg-white px-4 font-bold text-black"
             >
               Explore Partnerships
