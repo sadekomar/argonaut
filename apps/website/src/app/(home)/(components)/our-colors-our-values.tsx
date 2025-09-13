@@ -59,20 +59,22 @@ export function OurColorsOurValues() {
   const currentValue = values[currentValueIndex];
 
   return (
-    <section className="relative bg-gray-200 py-8 md:py-20">
-      <h2 className="h2 px-4 text-center font-bold">Our Colors, Our Values</h2>
+    <section className="relative overflow-hidden bg-gray-200">
+      <h2 className="h2 px-4 py-4 text-center font-bold">
+        Our Colors, Our Values
+      </h2>
       <div className="flex flex-col lg:flex-row">
         {/* Logo - Hidden on mobile, visible on larger screens */}
         <Image
           src={"/logo-large.webp"}
-          height={600}
-          width={600}
+          height={400}
+          width={400}
           alt="Argonaut logo"
           style={{
             transform: `rotate(${40 + counter * 120}deg)`,
             transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          className="absolute top-30 -left-[250px] hidden lg:block"
+          className="absolute top-30 -left-[200px] hidden lg:block"
         />
         <Image
           src={"/logo-large.webp"}
@@ -87,14 +89,13 @@ export function OurColorsOurValues() {
         />
 
         {/* Content Area */}
-        <div className="relative flex w-full items-center justify-center px-4 py-8 md:px-20 lg:items-end lg:justify-end lg:px-80 lg:py-40">
+        <div className="relative flex min-h-[440px] w-full items-end justify-end px-4 py-4 lg:px-80">
           {/* Vectors - Hidden on mobile, visible on larger screens */}
           <div className="hidden lg:block">
-            <currentValue.textVector className="absolute top-10 right-20" />
-            <currentValue.icon className="absolute top-0 right-20 bottom-0 my-auto" />
+            <currentValue.textVector className="absolute top-0 right-20" />
+            <currentValue.icon className="absolute top-40 right-20" />
           </div>
 
-          {/* Description Card */}
           <div className="w-full max-w-md lg:w-[460px] lg:max-w-none">
             <p
               style={{ fontWeight: 600 }}

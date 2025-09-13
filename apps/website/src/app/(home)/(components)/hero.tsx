@@ -14,7 +14,7 @@ export function Hero() {
       />
       <div className="items-left z-10 flex max-w-[680px] flex-col justify-center gap-6 px-4">
         <h1 className="h1 font-bold text-white">
-          Trading partner & Engineering specialist
+          Trading Partner & Engineering Specialist
         </h1>
         <p className="h6 max-w-[540px] text-left font-semibold text-white">
           We trade in and deliver full EPC solutions for MEP, HVAC and fire
