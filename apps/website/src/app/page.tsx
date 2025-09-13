@@ -14,7 +14,7 @@ export default function Home() {
       <Hero />
       <StrategicPartnerships />
       <Services />
-      <Stats />
+      {/* <Stats /> */}
       <TrustedByEgyptsTopCompanies />
       <CTA />
       <Footer />

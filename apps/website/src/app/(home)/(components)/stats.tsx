@@ -17,7 +17,7 @@ export function Stats() {
 
   function SectionHeading() {
     return (
-      <h1 className="h3 !max-w-150 max-sm:text-[31.25px]">
+      <h1 className="h3 !max-w-150 max-sm:!text-[31.25px]">
         Proven Track Record of Excellence
       </h1>
     );
@@ -32,7 +32,7 @@ export function Stats() {
           suffix="%"
           className="heading1 !text-9xl xl:!text-[160px]"
         />
-        <div className="description1">Client Satisfaction</div>
+        <div className="h6 max-sm:!text-base">Client Satisfaction</div>
       </div>
     );
   }
