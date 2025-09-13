@@ -11,7 +11,7 @@ export default function AboutPage() {
   return (
     <>
       <Image
-        src={"/workers.jpeg"}
+        src={"/workers.webp"}
         className="max-h-[460px] w-full border-[1px] border-solid border-gray-200 object-cover"
         alt="About Argonaut"
         width={5559}

@@ -3,7 +3,7 @@ import { CTA } from "./(home)/(components)/cta-section";
 import { TrustedByEgyptsTopCompanies } from "./(home)/(components)/trusted-by-egypts-top-companies";
 import { StrategicPartnerships } from "./(home)/(components)/strategic-partnerships";
 import { FullEPCForMEPSection } from "./(home)/(components)/full-epc-for-mep";
-import { Stats } from "./(home)/(components)/stats";
+// import { Stats } from "./(home)/(components)/stats";
 import { OurColorsOurValues } from "./(home)/(components)/our-colors-our-values";
 import { SeminarCountdown } from "./(home)/(components)/seminar-countdown";
 import { TwoBusinessArms } from "./(home)/(components)/two-business-arms";
@@ -15,7 +15,7 @@ export default function Home() {
       <TwoBusinessArms />
       <FullEPCForMEPSection />
       <StrategicPartnerships />
-      <Stats />
+      {/* <Stats /> */}
       <TrustedByEgyptsTopCompanies />
       <SeminarCountdown />
       <OurColorsOurValues />

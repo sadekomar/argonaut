@@ -3,7 +3,7 @@ import EPCServiceHighlights from "./epc-service-highlights";
 
 export function FullEPCForMEPSection() {
   return (
-    <div className="backgroundGrayGradient">
+    <div id="full-epc-section" className="backgroundGrayGradient">
       <div className="max-w-300">
         <FullEPCForMEP />
         <div>

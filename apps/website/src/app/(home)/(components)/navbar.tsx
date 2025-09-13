@@ -13,7 +13,7 @@ export function NavBar() {
         className="flex h-10 items-center justify-center rounded-full bg-white px-4"
       >
         <Image
-          src={"/argonaut-horizontal-small.png"}
+          src={"/argonaut-horizontal-small.webp"}
           width={128}
           height={28}
           alt="Argonaut"

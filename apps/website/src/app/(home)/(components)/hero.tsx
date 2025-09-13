@@ -1,11 +1,12 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
 
 export function Hero() {
   return (
     <div className="justify-left relative flex min-h-[90vh] w-full items-center overflow-hidden px-20">
       <Image
-        src="/argonaut-hero.png"
+        src="/argonaut-hero.webp"
         alt="Argonaut"
         fill
         priority
@@ -20,12 +21,16 @@ export function Hero() {
           safety, backed by proven expertise and a strong track record across
           oil and gas, defense, and infrastructure sectors.
         </p>
-        <Link
-          href="/services"
-          className="h6 flex h-[54px] w-fit items-center justify-center rounded-full bg-gray-950/70 px-8 font-bold text-white"
+        <button
+          onClick={() => {
+            document.getElementById("full-epc-section")?.scrollIntoView({
+              behavior: "smooth",
+            });
+          }}
+          className="h6 flex h-[54px] w-fit cursor-pointer items-center justify-center rounded-full bg-gray-950/70 px-8 font-bold text-white transition-colors hover:bg-gray-950/80"
         >
           Discover our services
-        </Link>
+        </button>
       </div>
     </div>
   );

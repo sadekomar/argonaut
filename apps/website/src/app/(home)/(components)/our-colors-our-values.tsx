@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 
 export function OurColorsOurValues() {
   const [currentValueIndex, setCurrentValueIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [counter, setCounter] = useState(0);
 
   const values: {
     title: string;
@@ -51,6 +51,7 @@ export function OurColorsOurValues() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentValueIndex((prevIndex) => (prevIndex + 1) % values.length);
+      setCounter((prevCounter) => prevCounter + 1);
     }, 3000);
     return () => clearInterval(interval);
   }, [values.length]);
@@ -62,12 +63,12 @@ export function OurColorsOurValues() {
       <h2 className="h2 text-center font-bold">Our Colors, Our Values</h2>
       <div className="flex">
         <Image
-          src={"/logo.png"}
+          src={"/logo-large.webp"}
           height={600}
           width={600}
           alt="Argonaut logo"
           style={{
-            transform: `rotate(${currentValue.angle}deg)`,
+            transform: `rotate(${40 + counter * 120}deg)`,
             transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
           className={`absolute top-30 -left-[250px]`}

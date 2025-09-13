@@ -40,7 +40,7 @@ export function SeminarCountdown() {
   return (
     <section className="justify-left relative flex min-h-[480px] w-full items-center overflow-hidden px-20">
       <Image
-        src="/seminar.png"
+        src="/seminar.webp"
         alt="Argonaut"
         fill
         priority
