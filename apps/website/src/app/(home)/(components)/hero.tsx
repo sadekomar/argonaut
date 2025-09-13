@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <div className="justify-left relative flex min-h-[90vh] w-full items-center overflow-hidden px-20">
+    <div className="justify-left relative flex min-h-[90vh] w-full items-center overflow-hidden px-4 md:px-20">
       <Image
         src="/argonaut-hero.webp"
         alt="Argonaut"

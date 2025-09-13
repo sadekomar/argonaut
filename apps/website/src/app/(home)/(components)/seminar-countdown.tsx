@@ -38,7 +38,7 @@ export function SeminarCountdown() {
   }, []);
 
   return (
-    <section className="justify-left relative flex min-h-[480px] w-full items-center overflow-hidden px-20">
+    <section className="justify-left relative flex min-h-[480px] w-full items-center overflow-hidden px-4 md:px-20">
       <Image
         src="/seminar.webp"
         alt="Argonaut"

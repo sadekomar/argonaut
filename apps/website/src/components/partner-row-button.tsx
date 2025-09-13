@@ -12,7 +12,7 @@ export function DisplayedPartner({
   grayscale?: boolean;
   onClick?: () => void;
 }) {
-  const needsBackground = name === "RedShield" || name === "Gerpass";
+  const needsBackground = name === "Gerpass";
 
   return (
     <button
@@ -21,13 +21,13 @@ export function DisplayedPartner({
         onClick?.();
       }}
     >
-      <div className={`${needsBackground ? "bg-neutral-200 px-1" : ""}`}>
+      <div>
         <Image
           width={130}
           height={0}
           src={`/partners/${image}`}
           alt={`${name}'s Logo`}
-          className="h-auto max-h-14 min-h-14 object-contain"
+          className={`h-auto max-h-14 min-h-14 object-contain ${needsBackground ? "invert filter" : ""}`}
         />
       </div>
     </button>
