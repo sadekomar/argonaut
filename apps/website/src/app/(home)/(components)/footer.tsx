@@ -37,17 +37,21 @@ const company = [
     slug: "/about",
   },
   {
-    name: "News",
-    slug: "/news",
+    name: "Quality Policy",
+    slug: "/quality-policy",
   },
-  {
-    name: "Careers",
-    slug: "/careers",
-  },
-  {
-    name: "Certifications",
-    slug: "/certifications",
-  },
+  // {
+  //   name: "News",
+  //   slug: "/news",
+  // },
+  // {
+  //   name: "Careers",
+  //   slug: "/careers",
+  // },
+  // {
+  //   name: "Certifications",
+  //   slug: "/certifications",
+  // },
 ];
 
 const contact = [
@@ -56,18 +60,18 @@ const contact = [
     icon: <Linkedin className="h-4 w-4" />,
     url: "https://www.linkedin.com/company/argonaut-egypt/",
   },
-  {
-    name: "Instagram",
-    icon: <Instagram className="h-4 w-4" />,
-    url: "https://www.instagram.com/",
-  },
+  // {
+  //   name: "Instagram",
+  //   icon: <Instagram className="h-4 w-4" />,
+  //   url: "https://www.instagram.com/",
+  // },
 ];
 
 export function Footer() {
   return (
     <>
       <div className="relative z-1 flex min-h-[600px] flex-col justify-between bg-[#101828] px-4 py-14 md:px-20">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[3fr_1fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[3fr_1fr_1fr]">
           <div>
             <h3 className="font-bold text-white">Argonaut</h3>
             <p className="mb-4 max-w-[54ch] leading-6 font-medium tracking-[-0.02em] text-white">
@@ -76,7 +80,8 @@ export function Footer() {
             </p>
           </div>
 
-          <div>
+          {/* links commented out until the rest of the website is finished */}
+          {/* <div>
             <h3 className="mb-2 font-bold text-white">Services</h3>
             <div className="grid gap-1 text-white">
               {services.map((page) => (
@@ -89,8 +94,8 @@ export function Footer() {
                 </Link>
               ))}
             </div>
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <h3 className="mb-2 font-bold text-white">Become a Supplier</h3>
             <div className="grid gap-1 text-white">
               {becomeASuppelier.map((page) => (
@@ -103,7 +108,7 @@ export function Footer() {
                 </Link>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div>
             <h3 className="mb-2 font-bold text-white">Company</h3>
