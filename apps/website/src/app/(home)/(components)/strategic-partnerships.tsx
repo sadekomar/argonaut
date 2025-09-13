@@ -1,5 +1,5 @@
 "use client";
-import { ChevronRight, Fan, Newspaper, Wind } from "lucide-react";
+import { Newspaper } from "lucide-react";
 import React, { useState } from "react";
 import Image from "next/image";
 import { PartnersRow } from "@/components/partners-row";
@@ -15,7 +15,7 @@ export function StrategicPartnerships() {
             Strategic Partnerships
           </div>
           <h1 className="h3 font-semibold max-sm:!text-[31.25px]">
-            Trading partners with industry leaders
+            Trading Partners with Industry Leaders
           </h1>
           <p className="h6 font-medium opacity-70">
             We supply HVAC, fire safety, and MEP equipment with fast delivery
@@ -23,12 +23,12 @@ export function StrategicPartnerships() {
             achieve reliable system performance across oil & gas, industrial,
             marine, and commercial projects.
           </p>
-          <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-red-900 fill-white px-4 py-2.5">
+          {/* <div className="inline-flex items-center gap-3 self-start rounded-4xl bg-red-900 fill-white px-4 py-2.5">
             <span className="p font-bold text-white">
               Discover Our Global Network
             </span>
             <ChevronRight className="h-4 w-4 stroke-white" />
-          </div>
+          </div> */}
         </div>
         <PartnerContent
           activePartner={activePartner}
@@ -56,7 +56,7 @@ export function StrategicPartnerships() {
           "Energy-efficient solutions that improve indoor air quality.",
         description3: "Custom systems built for demanding environments.",
         backgroundImagePath: "/halton-building.webp",
-        logoPath: "/partners/halton-logo.png",
+        logoPath: "/partners/halton-logo.webp",
         imageText:
           "Learn how Halton powers sustainable indoor air solutions for our projects",
         gradientColor: "00AEEF",
@@ -72,7 +72,7 @@ export function StrategicPartnerships() {
         description3:
           "Trusted HVAC technologies ensuring consistent indoor environments.",
         backgroundImagePath: "/trane-image.jpeg",
-        logoPath: "/partners/trane-logo.png",
+        logoPath: "/partners/trane-logo.webp",
         imageText:
           "Explore how Trane powers HVAC reliability in diverse environments",
         gradientColor: "FF2B00",
@@ -88,7 +88,7 @@ export function StrategicPartnerships() {
         description3:
           "Environmentally conscious systems that support green initiatives.",
         backgroundImagePath: "/enposs-image.jpeg",
-        logoPath: "/partners/enposs-logo.png",
+        logoPath: "/partners/enposs-logo.webp",
         imageText:
           "Discover how Enposs reduces HVAC and MEP energy consumption",
         gradientColor: "F18103",
@@ -104,7 +104,7 @@ export function StrategicPartnerships() {
         description3:
           "Engineered to meet international safety and regulatory standards.",
         backgroundImagePath: "/volute-image.jpg",
-        logoPath: "/partners/volute-logo.png",
+        logoPath: "/partners/volute-logo.webp",
         imageText:
           "Experience how Volute strengthens safety and reliability across our projects",
         gradientColor: "283C63",
@@ -120,7 +120,7 @@ export function StrategicPartnerships() {
         description3:
           "Designed to align with regional fire protection requirements.",
         backgroundImagePath: "/red-shield-image.jpg",
-        logoPath: "/partners/red-shield-logo.png",
+        logoPath: "/partners/red-shield-logo.webp",
         imageText:
           "Explore how RedShield provides cost-effective fire protection systems",
         gradientColor: "BA302B",
@@ -151,7 +151,7 @@ export function StrategicPartnerships() {
         description3:
           "Enhances safety and performance across critical installations.",
         backgroundImagePath: "/gerpass-image.png",
-        logoPath: "/partners/gerpass-logo.png",
+        logoPath: "/partners/gerpass-logo.webp",
         imageText:
           "Find out how Gerpaas delivers robust cable management for complex installations",
         gradientColor: "2C337F",

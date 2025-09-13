@@ -135,18 +135,22 @@ export function DesktopNavBar() {
         </Link>
       </div>
       <div className="flex items-center gap-2">
-        <Link
+        <a
           href="https://www.linkedin.com/company/argonaut-egypt/"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex h-10 items-center justify-center rounded-full bg-white px-4"
         >
           Get a Quote
-        </Link>
-        <Link
+        </a>
+        <a
           href="https://www.linkedin.com/company/argonaut-egypt/"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex h-10 items-center justify-center rounded-full bg-gray-500/20 px-4"
         >
           Become a Supplier
-        </Link>
+        </a>
       </div>
     </nav>
   );

@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function CTA() {
   return (
     <>
@@ -13,18 +11,22 @@ export function CTA() {
             projects, fully handled.
           </p>
           <div className="flex gap-2">
-            <Link
+            <a
               href={"https://www.linkedin.com/company/argonaut-egypt/"}
               className="flex h-10 items-center justify-center rounded-full bg-[#3F3F3F] px-4 font-bold text-white"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Get a Quote
-            </Link>
-            <Link
+            </a>
+            <a
               href={"https://www.linkedin.com/company/argonaut-egypt/"}
               className="flex h-10 items-center justify-center rounded-full border border-black bg-white px-4 font-bold text-black"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Explore Partnerships
-            </Link>
+            </a>
           </div>
         </div>
       </div>
