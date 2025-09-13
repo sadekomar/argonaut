@@ -150,7 +150,7 @@ export function Footer() {
           Copyright © {new Date().getFullYear()} Argonaut. All Rights Reserved.
         </div>
         <div
-          className="absolute top-40 left-0 z-[-1] w-full overflow-hidden font-black tracking-[-0.03em] text-clip whitespace-nowrap text-[#c5c5c539] select-none"
+          className="absolute top-[220px] left-0 z-[-1] w-full overflow-hidden font-black tracking-[-0.03em] text-clip whitespace-nowrap text-[#c5c5c539] select-none"
           style={{ fontSize: "18.5vw", lineHeight: 1, userSelect: "none" }}
         >
           ARGONAUT
