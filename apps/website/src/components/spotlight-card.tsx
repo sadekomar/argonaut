@@ -65,8 +65,8 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
           background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`,
         }}
       />
-      <Icon className="base:h-10 base:w-10 h-8 w-8 stroke-indigo-400 dark:stroke-indigo-600" />
-      <div className="description1 text-zinc-500">{title}</div>
+      <Icon className="base:h-10 base:w-10 h-8 w-8 stroke-black" />
+      <div className="h6 text-zinc-500 max-sm:!text-base">{title}</div>
     </div>
   );
 };

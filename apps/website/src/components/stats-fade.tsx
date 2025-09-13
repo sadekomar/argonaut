@@ -43,7 +43,7 @@ export default function StatsGrid() {
     return (
       <div className="flex flex-col">
         <h2 className="text-6xl font-semibold">{number}</h2>
-        <div className="description1">{label}</div>
+        <div className="h6 max-sm:!text-base">{label}</div>
       </div>
     );
   }

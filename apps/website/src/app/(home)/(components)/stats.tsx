@@ -17,21 +17,22 @@ export function Stats() {
 
   function SectionHeading() {
     return (
-      <h1 className="heading1 !max-w-150">Proven Track Record of Excellence</h1>
+      <h1 className="h3 !max-w-150 max-sm:!text-[31.25px]">
+        Proven Track Record of Excellence
+      </h1>
     );
   }
 
   function BigStat() {
     return (
       <div className="base:min-w-103 flex flex-col">
-        {/* <div className="heading1 !text-9xl xl:!text-[160px]">100%</div> */}
         <CountUp
           to={100}
           duration={0.5}
           suffix="%"
           className="heading1 !text-9xl xl:!text-[160px]"
         />
-        <div className="description1">Client Satisfaction</div>
+        <div className="h6 max-sm:!text-base">Client Satisfaction</div>
       </div>
     );
   }

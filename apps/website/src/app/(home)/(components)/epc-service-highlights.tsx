@@ -1,26 +1,17 @@
 "use client";
 import SpotlightCard from "@/components/spotlight-card";
-import {
-  ClipboardCheck,
-  DraftingCompass,
-  Handshake,
-  HardHat,
-} from "lucide-react";
+import { Construction, Handshake, HardHat, Wrench } from "lucide-react";
 import React from "react";
 
 export default function EPCServiceHighlights() {
   return (
-    <div className="mt-8 box-border grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
-      <SpotlightCard
-        Icon={DraftingCompass}
-        title="Engineering Design & 3D Modeling"
-      />
-      <SpotlightCard Icon={Handshake} title="Procurement & Vendor Management" />
-      <SpotlightCard
-        Icon={HardHat}
-        title="On-site Construction & Quality Control"
-      />
-      <SpotlightCard Icon={ClipboardCheck} title="Testing & Commissioning" />
+    <div className="mt-8 box-border grid h-full grid-cols-1 gap-4 sm:grid-cols-3">
+      <SpotlightCard Icon={HardHat} title="Engineering" />
+      <SpotlightCard Icon={Handshake} title="Procurement" />
+      <SpotlightCard Icon={Construction} title="Construction" />
+      <div className="sm:col-span-3">
+        <SpotlightCard Icon={Wrench} title="Maintenance" className="h-full" />
+      </div>
     </div>
   );
 }
