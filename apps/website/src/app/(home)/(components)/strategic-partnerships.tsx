@@ -9,7 +9,6 @@ export function StrategicPartnerships() {
   const trackRef = useRef<HTMLDivElement>(null);
   const lastActiveIndex = useRef(-1);
 
-  // Partner data with brand colors
   const partnerData = [
     {
       name: "Halton",
@@ -128,7 +127,6 @@ export function StrategicPartnerships() {
     },
   ];
 
-  // Function to get active slide index based on scroll position
   const getActiveIndex = () => {
     if (!trackRef.current) return 0;
     const track = trackRef.current;
@@ -151,7 +149,6 @@ export function StrategicPartnerships() {
     return best;
   };
 
-  // Handle scroll events to update active partner
   const handleScroll = () => {
     const activeIndex = getActiveIndex();
     if (activeIndex === lastActiveIndex.current) return;
@@ -162,7 +159,6 @@ export function StrategicPartnerships() {
       setActivePartner(activePartnerName);
     }
 
-    // Update background opacity
     const backgrounds = document.querySelectorAll("[data-bg]");
     backgrounds.forEach((bg, idx) => {
       const element = bg as HTMLElement;
@@ -179,26 +175,6 @@ export function StrategicPartnerships() {
     });
   };
 
-  // Handle wheel events for better desktop experience
-  const handleWheel = (e: WheelEvent) => {
-    if (!trackRef.current) return;
-
-    const track = trackRef.current;
-    const atStart = track.scrollLeft <= 0;
-    const atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
-    const verticalIntent = Math.abs(e.deltaY) > Math.abs(e.deltaX);
-
-    if (
-      verticalIntent &&
-      !(atStart && e.deltaY < 0) &&
-      !(atEnd && e.deltaY > 0)
-    ) {
-      e.preventDefault();
-      track.scrollLeft += e.deltaY;
-    }
-  };
-
-  // Function to navigate to specific partner
   const goToPartner = (partnerName: string) => {
     const index = partnerData.findIndex((p) => p.name === partnerName);
     if (index === -1 || !trackRef.current) return;
@@ -216,21 +192,17 @@ export function StrategicPartnerships() {
     }
   };
 
-  // Setup event listeners
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
 
     track.addEventListener("scroll", handleScroll, { passive: true });
-    track.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("resize", handleScroll);
 
-    // Initialize
     handleScroll();
 
     return () => {
       track.removeEventListener("scroll", handleScroll);
-      track.removeEventListener("wheel", handleWheel);
       window.removeEventListener("resize", handleScroll);
     };
   }, [partnerData, activePartner]);
@@ -290,7 +262,6 @@ function PartnerCarousel({
 }) {
   return (
     <div className="relative">
-      {/* Background stack - decoupled from content */}
       <div className="absolute inset-0 -z-10">
         {partnerData.map((partner, index) => (
           <div
@@ -312,7 +283,6 @@ function PartnerCarousel({
         ))}
       </div>
 
-      {/* Horizontal scroll track */}
       <div className="">
         <div
           ref={trackRef}
@@ -330,7 +300,6 @@ function PartnerCarousel({
         </div>
       </div>
 
-      {/* Mobile indicators */}
       <div className="base:hidden mt-4 flex flex-row justify-center gap-2">
         {partnerData.map((partner, index) => (
           <PartnerHorizontalLine
@@ -343,7 +312,6 @@ function PartnerCarousel({
         ))}
       </div>
 
-      {/* Desktop navigation */}
       <div className="base:block mt-8 hidden">
         <PartnersRow
           activePartner={activePartner}
@@ -408,7 +376,6 @@ function PartnerLearnMore({
 }) {
   return (
     <div className="relative w-full">
-      {/* <div className="relative w-full drop-shadow-[0_14px_14px_rgba(0,0,0,0.3)]"> */}
       <div className="relative drop-shadow-[0_14px_4px_rgba(0,0,0,0.3)]">
         <Image
           width={0}
