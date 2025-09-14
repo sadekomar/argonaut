@@ -237,7 +237,7 @@ export function StrategicPartnerships() {
 
   return (
     <div className="backgroundGrayGradient">
-      <div className="flex w-full max-w-278 flex-col gap-11 sm:gap-16">
+      <div className="mx-auto flex max-w-278 flex-col gap-11 sm:gap-16">
         <div className="flex flex-col items-start gap-4 sm:gap-6">
           <div className="h6 font-bold text-red-900">
             Strategic Partnerships
@@ -316,7 +316,7 @@ function PartnerCarousel({
       <div className="">
         <div
           ref={trackRef}
-          className="flex min-h-[410px] w-full touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex min-h-[410px] w-full touch-pan-x snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {partnerData.map((partner) => (
             <article

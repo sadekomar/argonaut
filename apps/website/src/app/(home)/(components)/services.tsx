@@ -4,7 +4,7 @@ import EPCServiceHighlights from "./epc-service-highlights";
 export function Services() {
   return (
     <div id="full-epc-section" className="backgroundGrayGradient">
-      <div className="max-w-278">
+      <div className="mx-auto max-w-278">
         <ServicesForEPC />
         <div>
           <hr className="border-t border-black opacity-10 dark:border-white" />
