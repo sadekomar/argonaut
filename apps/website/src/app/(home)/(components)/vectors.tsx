@@ -32,6 +32,22 @@ export function InnovationTextVector({ className }: { className: string }) {
     </svg>
   );
 }
+export function InnovationRedLogo({ className }: { className: string }) {
+  return (
+    <svg
+      width="76"
+      height="39"
+      viewBox="0 0 76 39"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0.309982 22.8299C83.59 70.7699 92.09 -7.61007 52.43 1.31993C50.19 1.83993 45.14 4.39994 34.37 10.6999C25.69 15.7999 15.05 24.9799 0.299988 22.8299"
+        fill="#024E27"
+      />
+    </svg>
+  );
+}
 export function InnovationVector({ className }: { className: string }) {
   return (
     <svg

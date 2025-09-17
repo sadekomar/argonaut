@@ -48,7 +48,7 @@ export const clientIcons = [
 export function TrustedByEgyptsTopCompanies() {
   return (
     <>
-      <h3 className="mx-20 mt-20 text-2xl font-bold">
+      <h3 className="h3 mx-20 mt-20 font-bold">
         {"Trusted by Egypt's top companies"}
       </h3>
 
