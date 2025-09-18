@@ -13,7 +13,6 @@ export default function Home() {
     <>
       <Hero />
       <TwoBusinessArms />
-      <SeminarCountdown />
       <StrategicPartnerships />
       <Services />
       {/* <Stats /> */}
