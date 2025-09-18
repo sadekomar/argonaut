@@ -4,7 +4,6 @@ import { TrustedByEgyptsTopCompanies } from "./(home)/(components)/trusted-by-eg
 import { StrategicPartnerships } from "./(home)/(components)/strategic-partnerships";
 // import { Stats } from "./(home)/(components)/stats";
 import { OurColorsOurValues } from "./(home)/(components)/our-colors-our-values";
-import { SeminarCountdown } from "./(home)/(components)/seminar-countdown";
 import { TwoBusinessArms } from "./(home)/(components)/two-business-arms";
 import { Services } from "./(home)/(components)/services";
 
