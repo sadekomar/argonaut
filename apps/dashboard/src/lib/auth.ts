@@ -8,14 +8,12 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   plugins: [oneTap()],
-  emailAndPassword: {
-    enabled: true,
-  },
   socialProviders: {
     google: {
       enabled: true,
       clientId: process.env.GOOGLE_CLIENT_ID ?? "NO_CLIENT_ID",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      disableSignUp: true,
     },
   },
 });
