@@ -1,7 +1,5 @@
 "use client";
 
-import { GalleryVerticalEnd } from "lucide-react";
-
 import { LoginForm } from "@/components/login-form";
 import { authClient } from "@/lib/auth-client";
 import { useEffect } from "react";
@@ -10,7 +8,7 @@ import Image from "next/image";
 export default function LoginPage() {
   const runOneTap = async () => {
     await authClient.oneTap({
-      callbackURL: "/dashboard",
+      callbackURL: "/",
     });
   };
 

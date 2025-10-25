@@ -9,6 +9,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Auth models
+// ------------------------------------------------------------
 model User {
   id            String    @id
   name          String
@@ -19,8 +21,10 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  person        Person?
 
   @@unique([email])
+  @@index([email])
   @@map("user")
 }
 
@@ -36,6 +40,7 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
+  @@index([token, userId])
   @@map("session")
 }
 
@@ -55,6 +60,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@index([userId])
   @@map("account")
 }
 
@@ -66,5 +72,134 @@ model Verification {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 
+  @@index([identifier])
   @@map("verification")
+}
+
+// ------------------------------------------------------------
+// Business-logic models
+// 4 enums
+// 5 models (2 core and 3 supporting)
+
+enum QuoteOutcome {
+  WON
+  PENDING
+  LOST
+}
+
+enum CompanyType {
+  SUPPLIER
+  CLIENT
+  CONTRACTOR
+  CONSULTANT
+}
+
+enum Currency {
+  EGP
+  USD
+  EUR
+  GBP
+  SAR
+  AED
+}
+
+enum ProjectStatus {
+  IN_HAND
+  TENDER
+}
+
+model Quote {
+  id                          String       @id @default(uuid())
+  serialNumber                Int          @default(autoincrement())
+  referenceNumber             String
+  date                        DateTime
+  currency                    Currency
+  rate                        Float
+  value                       Int
+  notes                       String?
+  authorId                    String
+  author                      Person       @relation("Author", fields: [authorId], references: [id], onDelete: Cascade)
+  supplierId                  String?
+  supplier                    Company?     @relation("SupplierCompany", fields: [supplierId], references: [id], onDelete: Cascade)
+  clientId                    String
+  client                      Company      @relation("ClientCompany", fields: [clientId], references: [id], onDelete: Cascade)
+  projectId                   String
+  project                     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contactPersonId             String
+  contactPerson               Person       @relation("ContactPerson", fields: [contactPersonId], references: [id], onDelete: Cascade)
+  quoteOutcome                QuoteOutcome @default(PENDING)
+  approximateSiteDeliveryDate DateTime
+  // one-to-one relationship with RFQ so unique constraint
+  rfqId                       String?      @unique
+  rfq                         Rfq?         @relation(fields: [rfqId], references: [id])
+  createdAt                   DateTime     @default(now())
+  updatedAt                   DateTime     @updatedAt
+}
+
+model Rfq {
+  id              String   @id @default(uuid())
+  serialNumber    Int      @default(autoincrement())
+  referenceNumber String
+  date            DateTime
+  currency        Currency
+  rate            Float
+  value           Int
+  notes           String?
+  authorId        String
+  author          Person   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  supplierId      String
+  supplier        Company  @relation("SupplierCompany", fields: [supplierId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Company  @relation("ClientCompany", fields: [clientId], references: [id], onDelete: Cascade)
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  quote           Quote?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Person {
+  id               String   @id @default(uuid())
+  name             String
+  email            String
+  phone            String
+  // Internal sales person creating quotes
+  authoredQuotes   Quote[]  @relation("Author")
+  // External contact person for quotes
+  contactForQuotes Quote[]  @relation("ContactPerson")
+  authoredRfqs     Rfq[]
+  companyId        String
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId           String?  @unique
+  user             User?    @relation(fields: [userId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Company {
+  id             String      @id @default(uuid())
+  name           String
+  email          String?
+  phone          String?
+  type           CompanyType @default(CLIENT)
+  projects       Project[]
+  clientQuotes   Quote[]     @relation("ClientCompany")
+  supplierQuotes Quote[]     @relation("SupplierCompany")
+  clientRFQs     Rfq[]       @relation("ClientCompany")
+  supplierRFQs   Rfq[]       @relation("SupplierCompany")
+  people         Person[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Project {
+  id        String        @id @default(uuid())
+  name      String
+  status    ProjectStatus
+  companyId String
+  company   Company       @relation(fields: [companyId], references: [id])
+  quotes    Quote[]
+  rfqs      Rfq[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }

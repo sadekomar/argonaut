@@ -7,6 +7,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // Cache duration in seconds
+    },
+  },
   plugins: [
     oneTap({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "NO_CLIENT_ID",
