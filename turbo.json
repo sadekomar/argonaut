@@ -15,8 +15,17 @@
     },
     "build": {
       "dependsOn": ["^build", "^db:generate"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "packages/database/generated/**"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "packages/database/generated/**",
+        "packages/database/prisma/**"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "packages/database/generated/**"
+      ],
       "env": [
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",

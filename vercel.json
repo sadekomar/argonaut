@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd apps/dashboard && pnpm build",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "functions": {
+    "apps/dashboard/src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
+}
