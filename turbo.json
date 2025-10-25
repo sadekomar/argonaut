@@ -15,7 +15,7 @@
     },
     "build": {
       "dependsOn": ["^build", "^db:generate"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "packages/database/generated/**"],
       "outputs": [".next/**", "!.next/cache/**"],
       "env": [
         "BETTER_AUTH_SECRET",
