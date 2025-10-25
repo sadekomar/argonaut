@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 4000",
-    "prebuild": "cd ../../packages/database && pnpm db:generate",
     "build": "next build --turbopack",
     "start": "next start"
   },

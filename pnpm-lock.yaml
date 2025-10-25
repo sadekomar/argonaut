@@ -96,9 +96,6 @@ importers:
       '@types/react-dom':
         specifier: 19.1.1
         version: 19.1.1(@types/react@19.1.0)
-      prisma:
-        specifier: ^6.17.1
-        version: 6.17.1(typescript@5.9.3)
       tailwindcss:
         specifier: ^4
         version: 4.1.14
