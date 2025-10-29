@@ -80,7 +80,7 @@ model Verification {
 // ------------------------------------------------------------
 // Business-logic models
 // 4 enums
-// 5 models (2 core and 3 supporting)
+// 7 models (3 core and 4 supporting)
 
 enum QuoteOutcome {
   WON
@@ -111,6 +111,7 @@ enum ProjectStatus {
 
 model Quote {
   id                          String       @id @default(uuid())
+  // ARGO-Q-2xxx-mm-yyyy
   serialNumber                Int          @default(autoincrement())
   referenceNumber             String
   date                        DateTime
@@ -130,15 +131,28 @@ model Quote {
   contactPerson               Person       @relation("ContactPerson", fields: [contactPersonId], references: [id], onDelete: Cascade)
   quoteOutcome                QuoteOutcome @default(PENDING)
   approximateSiteDeliveryDate DateTime
-  // one-to-one relationship with RFQ so unique constraint
-  rfqId                       String?      @unique
-  rfq                         Rfq?         @relation(fields: [rfqId], references: [id])
   createdAt                   DateTime     @default(now())
   updatedAt                   DateTime     @updatedAt
+  Rfq                         Rfq?
+  FollowUp                    FollowUp[]
+}
+
+model FollowUp {
+  id        String   @id @default(uuid())
+  quoteId   String
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    Person   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([quoteId])
 }
 
 model Rfq {
   id              String   @id @default(uuid())
+  // ARGO-RFQ-1xxx-mm-yyyy
   serialNumber    Int      @default(autoincrement())
   referenceNumber String
   date            DateTime
@@ -154,43 +168,74 @@ model Rfq {
   client          Company  @relation("ClientCompany", fields: [clientId], references: [id], onDelete: Cascade)
   projectId       String
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  quote           Quote?
+  // all rfqs must have a quoteId
+  // one-to-one relationship with quote so unique constraint
+  quoteId         String?  @unique
+  quote           Quote?   @relation(fields: [quoteId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
+// is quotation followed up or not
+enum RegistrationStatus {
+  PURSUING
+  REQUIREMENTS_COLLECTED
+  DOCS_SENT
+  UNDER_REVIEW
+  PENDING_CONFIRMATION
+  VERIFIED
+  ON_HOLD
+  DECLINED
+}
+
+model Registration {
+  id                 String             @id @default(uuid())
+  companyId          String
+  company            Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  registrationStatus RegistrationStatus
+  authorId           String
+  author             Person             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  registrationFile   String?
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
 model Person {
-  id               String   @id @default(uuid())
+  id               String         @id @default(uuid())
   name             String
   email            String
   phone            String
   // Internal sales person creating quotes
-  authoredQuotes   Quote[]  @relation("Author")
+  authoredQuotes   Quote[]        @relation("Author")
   // External contact person for quotes
-  contactForQuotes Quote[]  @relation("ContactPerson")
+  contactForQuotes Quote[]        @relation("ContactPerson")
   authoredRfqs     Rfq[]
   companyId        String
-  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId           String?  @unique
-  user             User?    @relation(fields: [userId], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId           String?        @unique
+  user             User?          @relation(fields: [userId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  Registration     Registration[]
+  FollowUp         FollowUp[]
 }
 
 model Company {
-  id             String      @id @default(uuid())
+  id             String         @id @default(uuid())
   name           String
   email          String?
   phone          String?
-  type           CompanyType @default(CLIENT)
+  type           CompanyType    @default(CLIENT)
   projects       Project[]
-  clientQuotes   Quote[]     @relation("ClientCompany")
-  supplierQuotes Quote[]     @relation("SupplierCompany")
-  clientRFQs     Rfq[]       @relation("ClientCompany")
-  supplierRFQs   Rfq[]       @relation("SupplierCompany")
+  clientQuotes   Quote[]        @relation("ClientCompany")
+  supplierQuotes Quote[]        @relation("SupplierCompany")
+  clientRFQs     Rfq[]          @relation("ClientCompany")
+  supplierRFQs   Rfq[]          @relation("SupplierCompany")
   people         Person[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  Registration   Registration[]
 }
 
 model Project {
