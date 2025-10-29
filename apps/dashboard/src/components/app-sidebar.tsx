@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
+  Building2,
+  FileText,
+  Handshake,
   PieChart,
   Settings2,
-  SquareTerminal,
+  Users,
+  ClipboardList,
+  TrendingUp,
+  Briefcase,
+  UserCheck,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -26,132 +26,216 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Mohamed Shoukry",
+    email: "mohamed@argonaut.com",
+    avatar: "/avatars/user.jpg",
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
+      name: "Argonaut Engineering",
+      logo: Building2,
       plan: "Enterprise",
     },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+    // {
+    //   name: "Argonaut Sales",
+    //   logo: TrendingUp,
+    //   plan: "Professional",
+    // },
+    // {
+    //   name: "Argonaut Operations",
+    //   logo: Briefcase,
+    //   plan: "Standard",
+    // },
   ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Quotes",
+      url: "/quotes",
+      icon: FileText,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "All Quotes",
+          url: "/quotes",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Won Quotes",
+          url: "/quotes?status=won",
         },
         {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
+          title: "Pending Quotes",
+          url: "/quotes?status=pending",
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: "Lost Quotes",
+          url: "/quotes?status=lost",
         },
         {
-          title: "Quantum",
-          url: "#",
+          title: "Create Quote",
+          url: "/quotes/new",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
+      title: "RFQs",
+      url: "/rfqs",
+      icon: ClipboardList,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: "All RFQs",
+          url: "/rfqs",
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: "Open RFQs",
+          url: "/rfqs?status=open",
         },
         {
-          title: "Tutorials",
-          url: "#",
+          title: "Create RFQ",
+          url: "/rfqs/new",
+        },
+      ],
+    },
+    {
+      title: "Companies",
+      url: "/companies",
+      icon: Building2,
+      items: [
+        {
+          title: "All Companies",
+          url: "/companies",
         },
         {
-          title: "Changelog",
-          url: "#",
+          title: "Clients",
+          url: "/companies?type=client",
+        },
+        {
+          title: "Suppliers",
+          url: "/companies?type=supplier",
+        },
+        {
+          title: "Contractors",
+          url: "/companies?type=contractor",
+        },
+        {
+          title: "Consultants",
+          url: "/companies?type=consultant",
+        },
+        {
+          title: "Add Company",
+          url: "/companies/new",
+        },
+      ],
+    },
+    {
+      title: "People",
+      url: "/people",
+      icon: Users,
+      items: [
+        {
+          title: "All People",
+          url: "/people",
+        },
+        {
+          title: "Internal Team",
+          url: "/people?type=internal",
+        },
+        {
+          title: "External Contacts",
+          url: "/people?type=external",
+        },
+        {
+          title: "Add Person",
+          url: "/people/new",
+        },
+      ],
+    },
+    {
+      title: "Projects",
+      url: "/projects",
+      icon: Briefcase,
+      items: [
+        {
+          title: "All Projects",
+          url: "/projects",
+        },
+        {
+          title: "In Hand",
+          url: "/projects?status=in_hand",
+        },
+        {
+          title: "Tenders",
+          url: "/projects?status=tender",
+        },
+        {
+          title: "Add Project",
+          url: "/projects/new",
+        },
+      ],
+    },
+    {
+      title: "Analytics",
+      url: "/analytics",
+      icon: PieChart,
+      items: [
+        {
+          title: "Quote Performance",
+          url: "/analytics/quotes",
+        },
+        {
+          title: "Company Overview",
+          url: "/analytics/companies",
+        },
+        {
+          title: "Project Status",
+          url: "/analytics/projects",
+        },
+        {
+          title: "Revenue Reports",
+          url: "/analytics/revenue",
         },
       ],
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: Settings2,
       items: [
         {
           title: "General",
-          url: "#",
+          url: "/settings/general",
         },
         {
-          title: "Team",
-          url: "#",
+          title: "Users & Permissions",
+          url: "/settings/users",
         },
         {
-          title: "Billing",
-          url: "#",
+          title: "Company Settings",
+          url: "/settings/company",
         },
         {
-          title: "Limits",
-          url: "#",
+          title: "Currency & Rates",
+          url: "/settings/currency",
         },
       ],
     },
   ],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      name: "MEP Engineering",
+      url: "/projects/mep",
+      icon: Building2,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      name: "EPC Ventures",
+      url: "/projects/epc",
+      icon: Handshake,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      name: "Quality Assurance",
+      url: "/projects/quality",
+      icon: UserCheck,
     },
   ],
 };
