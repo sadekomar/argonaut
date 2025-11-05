@@ -151,9 +151,9 @@ model FollowUp {
 }
 
 model Rfq {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   // ARGO-RFQ-1xxx-mm-yyyy
-  serialNumber    Int      @default(autoincrement())
+  serialNumber    Int       @default(autoincrement())
   referenceNumber String
   date            DateTime
   currency        Currency
@@ -161,19 +161,21 @@ model Rfq {
   value           Int
   notes           String?
   authorId        String
-  author          Person   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author          Person    @relation(fields: [authorId], references: [id], onDelete: Cascade)
   supplierId      String
-  supplier        Company  @relation("SupplierCompany", fields: [supplierId], references: [id], onDelete: Cascade)
+  supplier        Company   @relation("SupplierCompany", fields: [supplierId], references: [id], onDelete: Cascade)
   clientId        String
-  client          Company  @relation("ClientCompany", fields: [clientId], references: [id], onDelete: Cascade)
+  client          Company   @relation("ClientCompany", fields: [clientId], references: [id], onDelete: Cascade)
   projectId       String
-  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // once recieved new fields will unlock for value, currency, rate
+  rfqReceivedAt   DateTime?
   // all rfqs must have a quoteId
   // one-to-one relationship with quote so unique constraint
-  quoteId         String?  @unique
-  quote           Quote?   @relation(fields: [quoteId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  quoteId         String?   @unique
+  quote           Quote?    @relation(fields: [quoteId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // is quotation followed up or not
@@ -201,18 +203,21 @@ model Registration {
   updatedAt          DateTime           @updatedAt
 }
 
+// suppliers registered`
+// add in the company model
+
 model Person {
   id               String         @id @default(uuid())
   name             String
-  email            String
-  phone            String
+  email            String?
+  phone            String?
   // Internal sales person creating quotes
   authoredQuotes   Quote[]        @relation("Author")
   // External contact person for quotes
   contactForQuotes Quote[]        @relation("ContactPerson")
   authoredRfqs     Rfq[]
-  companyId        String
-  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId        String?
+  company          Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   userId           String?        @unique
   user             User?          @relation(fields: [userId], references: [id])
   createdAt        DateTime       @default(now())
@@ -239,13 +244,30 @@ model Company {
 }
 
 model Project {
-  id        String        @id @default(uuid())
+  id        String         @id @default(uuid())
   name      String
-  status    ProjectStatus
-  companyId String
-  company   Company       @relation(fields: [companyId], references: [id])
+  status    ProjectStatus?
+  companyId String?
+  company   Company?       @relation(fields: [companyId], references: [id])
   quotes    Quote[]
   rfqs      Rfq[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
+
+// Capacity feature to associate products with quotes.
+// many-to-many 
+// product table
+// type: pumps
+// capacity
+
+// total quoted value
+// totalt lost 
+// total won
+// convesion rate based on finalized (hit rate): total won / total won + total lost
+// potential revenue
+// total quoted - total lost = potential revenue to be gained (will still be converted)
+
+// Documents for reference (all pdfs)
+// authorization letters
+// authorization certificates, company trade licences, company tax card, company profile, catalogs.

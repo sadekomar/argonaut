@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Person" ALTER COLUMN "email" DROP NOT NULL,
+ALTER COLUMN "phone" DROP NOT NULL,
+ALTER COLUMN "companyId" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Project" ALTER COLUMN "status" DROP NOT NULL;
