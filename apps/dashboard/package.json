@@ -11,7 +11,6 @@
     "@aws-sdk/client-s3": "^3.920.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.17.1",
-    "@prisma/nextjs-monorepo-workaround-plugin": "^6.19.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
