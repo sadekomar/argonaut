@@ -2,8 +2,9 @@
   "name": "@repo/db",
   "version": "0.0.0",
   "dependencies": {
-    "prisma": "^6.17.1",
-    "@prisma/client": "^6.17.1"
+    "@prisma/adapter-pg": "^6.19.0",
+    "@prisma/client": "^6.17.1",
+    "prisma": "^6.17.1"
   },
   "scripts": {
     "db:generate": "prisma generate",
