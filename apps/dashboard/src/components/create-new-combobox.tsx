@@ -11,64 +11,58 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/kibo-ui/combobox";
-import { useState } from "react";
-
-// const initialFrameworks = [
-//   {
-//     value: "next.js",
-//     label: "Next.js",
-//   },
-//   {
-//     value: "sveltekit",
-//     label: "SvelteKit",
-//   },
-//   {
-//     value: "nuxt.js",
-//     label: "Nuxt.js",
-//   },
-//   {
-//     value: "remix",
-//     label: "Remix",
-//   },
-//   {
-//     value: "astro",
-//     label: "Astro",
-//   },
-//   {
-//     value: "vite",
-//     label: "Vite",
-//   },
-// ];
+import { useState, useEffect } from "react";
 
 const CreateNewCombobox = ({
   initialOptions,
   createNewFunction = (value) => {},
+  label,
+  value,
+  onValueChange,
 }: {
   initialOptions: { value: string; label: string }[];
-  createNewFunction?: (value: string) => void;
+  createNewFunction?: ({
+    id,
+    name,
+    companyId,
+  }: {
+    id: string;
+    name: string;
+    companyId?: string;
+  }) => void;
+  label?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 }) => {
   const [data, setData] = useState(initialOptions);
-  const [currentValue, setCurrentValue] = useState("");
+
+  useEffect(() => {
+    setData(initialOptions);
+  }, [initialOptions]);
 
   const handleCreateNew = (newValue: string) => {
-    // console.log("Creating new framework:", newValue);
-
-    // Add the new framework to the list
-    const newFramework = {
-      value: newValue.toLowerCase().replace(/\s+/g, "-"),
+    const uuid = crypto.randomUUID();
+    const formattedValue = {
+      value: uuid,
       label: newValue,
     };
-    setData((prev) => [...prev, newFramework]);
-    setCurrentValue(newFramework.value);
-    createNewFunction(newValue);
+    setData((prev) => [...prev, formattedValue]);
+    // Select the newly created item by UUID
+    // Use setTimeout to ensure this runs after ComboboxCreateNew's onValueChange
+    setTimeout(() => {
+      if (onValueChange) {
+        onValueChange(uuid);
+      }
+    }, 0);
+    createNewFunction({ id: uuid, name: newValue });
   };
 
   return (
     <Combobox
       data={data}
-      onValueChange={setCurrentValue}
-      type="framework"
-      value={currentValue}
+      type={label ?? "item"}
+      value={value ?? ""}
+      onValueChange={onValueChange}
     >
       <ComboboxTrigger className="w-[300px]" />
       <ComboboxContent>
@@ -78,9 +72,13 @@ const CreateNewCombobox = ({
         </ComboboxEmpty>
         <ComboboxList>
           <ComboboxGroup>
-            {data.map((framework) => (
-              <ComboboxItem key={framework.value} value={framework.value}>
-                {framework.label}
+            {data.map((option) => (
+              <ComboboxItem
+                key={option.value}
+                value={option.value}
+                keywords={[option.label]}
+              >
+                {option.label}
               </ComboboxItem>
             ))}
           </ComboboxGroup>

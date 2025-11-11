@@ -16,6 +16,10 @@ const router: Router = {
       multipleFiles: true,
       maxFiles: 4,
     }),
+    form: route({
+      multipleFiles: true,
+      maxFiles: 5,
+    }),
   },
 };
 

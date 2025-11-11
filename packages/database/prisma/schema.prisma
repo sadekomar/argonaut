@@ -130,11 +130,12 @@ model Quote {
   contactPersonId             String
   contactPerson               Person       @relation("ContactPerson", fields: [contactPersonId], references: [id], onDelete: Cascade)
   quoteOutcome                QuoteOutcome @default(PENDING)
-  approximateSiteDeliveryDate DateTime
+  approximateSiteDeliveryDate DateTime?
   createdAt                   DateTime     @default(now())
   updatedAt                   DateTime     @updatedAt
   Rfq                         Rfq?
   FollowUp                    FollowUp[]
+  objectKeys                  String[]
 }
 
 model FollowUp {
@@ -206,6 +207,12 @@ model Registration {
 // suppliers registered`
 // add in the company model
 
+enum PersonType {
+  AUTHOR
+  CONTACT_PERSON
+  INTERNAL
+}
+
 model Person {
   id               String         @id @default(uuid())
   name             String
@@ -218,6 +225,7 @@ model Person {
   authoredRfqs     Rfq[]
   companyId        String?
   company          Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type             PersonType     @default(INTERNAL)
   userId           String?        @unique
   user             User?          @relation(fields: [userId], references: [id])
   createdAt        DateTime       @default(now())

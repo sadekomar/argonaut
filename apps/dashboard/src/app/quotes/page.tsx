@@ -1,6 +1,5 @@
 "use client";
 
-import { Uploader } from "@/components/uploader";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -38,97 +37,111 @@ import {
   createContactPerson,
   createProject,
   createSupplier,
-} from "./utils/create-supplier";
-import { readSuppliers } from "./hooks/readSuppliers";
+} from "./_utils/create-supplier";
+import {
+  readAuthors,
+  readClients,
+  readContactPersons,
+  readProjects,
+  readSuppliers,
+} from "./_hooks/read-suppliers";
+import { useUploadFiles } from "better-upload/client";
+import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
+import { createQuote } from "./_utils/create-quote";
+import { useQuery } from "@tanstack/react-query";
 
 // Based on packages/database/prisma/schema.prisma → Quote model
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 
 const addQuoteSchema = z.object({
-  referenceNumber: z
-    .string()
-    .trim()
-    .min(1, { message: "Reference number is required" }),
   date: z.string().trim().min(1, { message: "Date is required" }),
   currency: currencyEnum,
-  value: z.coerce
-    .number()
-    .int()
-    .nonnegative({ message: "Value must be a non-negative integer" }),
+  value: z.string().min(1, { message: "Value is required" }),
   notes: z.string().trim().optional(),
-  author: z.string().trim().min(1, { message: "Author is required" }),
-  supplier: z.string().trim().optional(),
-  client: z.string().trim().min(1, { message: "Client is required" }),
-  project: z.string().trim().min(1, { message: "Project is required" }),
-  contactPerson: z
+  authorId: z.string().trim().min(1, { message: "Author is required" }),
+  supplierId: z.string().trim().min(1, { message: "Supplier is required" }),
+  clientId: z.string().trim().min(1, { message: "Client is required" }),
+  projectId: z.string().trim().min(1, { message: "Project is required" }),
+  contactPersonId: z
     .string()
     .trim()
     .min(1, { message: "Contact person is required" }),
-  approximateSiteDeliveryDate: z
-    .string()
-    .trim()
-    .min(1, { message: "Approx. delivery date is required" }),
+  approximateSiteDeliveryDate: z.string().trim().optional(),
+  objectKeys: z
+    .array(z.string())
+    .min(1, { message: "Related files are required" }),
 });
 
-type AddQuoteInput = z.infer<typeof addQuoteSchema>;
+export type AddQuoteForm = z.infer<typeof addQuoteSchema>;
 
 export default function AddQuote() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const form = useForm<any>({
+  const form = useForm<AddQuoteForm>({
     resolver: zodResolver(addQuoteSchema),
     defaultValues: {
-      referenceNumber: "",
       date: "",
-      currency: undefined,
-      rate: undefined as unknown as number,
-      value: undefined as unknown as number,
+      currency: "EGP",
+      value: "",
       notes: "",
       clientId: "",
       projectId: "",
       contactPersonId: "",
       supplierId: "",
       approximateSiteDeliveryDate: "",
+      objectKeys: [],
+    },
+  });
+
+  const { control: uploadControl } = useUploadFiles({
+    route: "form",
+    onUploadComplete: ({ files }) => {
+      form.setValue(
+        "objectKeys",
+        files.map((file) => file.objectKey)
+      );
+    },
+    onError: (error) => {
+      form.setError("objectKeys", {
+        message: error.message || "An error occurred",
+      });
     },
   });
 
   const onSubmit = async (data: any) => {
-    setIsLoading(true);
-    setIsSuccess(false);
-
+    console.log("✅ onSubmit called! Data:", data);
     try {
-      const payload = {
-        ...data,
-        date: new Date(data.date),
-        approximateSiteDeliveryDate: new Date(data.approximateSiteDeliveryDate),
-      };
-      // Integration point: POST to your quotes API
-      // await fetch("/api/quotes", { method: "POST", body: JSON.stringify(payload) });
-      console.log("Submitting quote:", payload);
-      setIsSuccess(true);
-      form.reset();
+      console.log("Submitting quote:", data);
+      createQuote(data);
     } catch (e) {
-      form.setError("referenceNumber", {
+      console.error("Error submitting quote:", e);
+      form.setError("root", {
         message: "Failed to submit. Please try again.",
       });
     } finally {
-      setIsLoading(false);
+      uploadControl.reset();
+      form.reset();
     }
   };
 
-  // useEffect(() => {
-  //   const fetchSuppliers = async () => {
-  //     const suppliers = await readSuppliers();
-  //     const supplierOptions = suppliers.map((supplier) => ({
-  //       value: supplier.id,
-  //       label: supplier.name,
-  //     }));
-  //     return supplierOptions;
-  //   };
-
-  //   fetchSuppliers();
-  // }, []);
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects"],
+    queryFn: readProjects,
+  });
+  const { data: contactPersons = [] } = useQuery({
+    queryKey: ["contactPersons"],
+    queryFn: readContactPersons,
+  });
+  const { data: authors = [] } = useQuery({
+    queryKey: ["authors"],
+    queryFn: readAuthors,
+  });
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients"],
+    queryFn: readClients,
+  });
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: readSuppliers,
+  });
 
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -141,30 +154,36 @@ export default function AddQuote() {
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Add Quote</CardTitle>
-              <CardDescription>
-                {isSuccess
-                  ? "Quote captured locally. Connect API to persist."
-                  : "Enter quote details below."}
-              </CardDescription>
+              <CardDescription>Enter quote details below.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form
-                  onSubmit={form.handleSubmit(onSubmit)}
+                  onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                    console.log("Form validation errors:", errors);
+                    console.log("Form values:", form.getValues());
+                  })}
                   className="space-y-6"
                 >
                   <FieldGroup>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="referenceNumber"
+                        name="authorId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Reference Number</FormLabel>
+                            <FormLabel>Author</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="ARGO-Q-2xxx-mm-yyyy"
-                                {...field}
+                              <CreateNewCombobox
+                                initialOptions={authors}
+                                createNewFunction={async (value) => {
+                                  const author = await createAuthor(value);
+
+                                  return author.id;
+                                }}
+                                label="author"
+                                value={field.value ?? ""}
+                                onValueChange={(value) => field.onChange(value)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -179,11 +198,7 @@ export default function AddQuote() {
                           <FormItem>
                             <FormLabel>Date</FormLabel>
                             <FormControl>
-                              <Input
-                                type="date"
-                                value={field.value ?? ""}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
+                              <Input type="date" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -199,8 +214,7 @@ export default function AddQuote() {
                             <FormControl>
                               <select
                                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                value={field.value ?? ""}
-                                onChange={(e) => field.onChange(e.target.value)}
+                                {...field}
                               >
                                 <option value="" disabled>
                                   Select currency
@@ -227,7 +241,6 @@ export default function AddQuote() {
                             <FormControl>
                               <Input
                                 type="number"
-                                placeholder="e.g. 100000"
                                 value={field.value ?? ""}
                                 onChange={(e) => field.onChange(e.target.value)}
                               />
@@ -239,61 +252,21 @@ export default function AddQuote() {
 
                       <FormField
                         control={form.control}
-                        name="author"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Author</FormLabel>
-                            <FormControl>
-                              <CreateNewCombobox
-                                initialOptions={[]}
-                                createNewFunction={(value) => {
-                                  createAuthor(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="supplier"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Supplier</FormLabel>
-                            <FormControl>
-                              <CreateNewCombobox
-                                initialOptions={[
-                                  { value: "nestle", label: "Nestle" },
-                                  { value: "unilever", label: "Unilever" },
-                                  {
-                                    value: "procter-and-gamble",
-                                    label: "Procter & Gamble",
-                                  },
-                                ]}
-                                createNewFunction={(value) => {
-                                  createSupplier(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="cient"
+                        name="clientId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Client</FormLabel>
                             <FormControl>
                               <CreateNewCombobox
-                                initialOptions={[]}
-                                createNewFunction={(value) => {
-                                  createClient(value);
+                                initialOptions={clients}
+                                createNewFunction={async (value) => {
+                                  const client = await createClient(value);
+
+                                  return client.id;
                                 }}
+                                label="client"
+                                value={field.value ?? ""}
+                                onValueChange={(value) => field.onChange(value)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -303,16 +276,51 @@ export default function AddQuote() {
 
                       <FormField
                         control={form.control}
-                        name="project"
+                        name="supplierId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Supplier</FormLabel>
+                            <FormControl>
+                              <CreateNewCombobox
+                                initialOptions={suppliers}
+                                createNewFunction={async (value) => {
+                                  const supplier = await createSupplier(value);
+
+                                  return supplier.id;
+                                }}
+                                label="supplier"
+                                value={field.value ?? ""}
+                                onValueChange={(value) => field.onChange(value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="projectId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Project</FormLabel>
                             <FormControl>
                               <CreateNewCombobox
-                                initialOptions={[]}
-                                createNewFunction={(value) => {
-                                  createProject(value);
+                                initialOptions={projects}
+                                createNewFunction={async (value) => {
+                                  const projectWithCompany = {
+                                    ...value,
+                                    companyId:
+                                      form.getValues("clientId") ?? undefined,
+                                  };
+                                  const project =
+                                    await createProject(projectWithCompany);
+
+                                  return project.id;
                                 }}
+                                label="project"
+                                value={field.value ?? ""}
+                                onValueChange={(value) => field.onChange(value)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -322,16 +330,28 @@ export default function AddQuote() {
 
                       <FormField
                         control={form.control}
-                        name="contactPerson"
+                        name="contactPersonId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Contact Person</FormLabel>
                             <FormControl>
                               <CreateNewCombobox
-                                initialOptions={[]}
-                                createNewFunction={(value) => {
-                                  createContactPerson(value);
+                                initialOptions={contactPersons}
+                                createNewFunction={async (value) => {
+                                  const withCompany = {
+                                    ...value,
+                                    companyId:
+                                      form.getValues("clientId") ?? undefined,
+                                  };
+
+                                  const contactPerson =
+                                    await createContactPerson(withCompany);
+
+                                  return contactPerson.id;
                                 }}
+                                label="contact person"
+                                value={field.value ?? ""}
+                                onValueChange={(value) => field.onChange(value)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -380,31 +400,29 @@ export default function AddQuote() {
 
                   <FormField
                     control={form.control}
-                    name="notes"
+                    name="objectKeys"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Related Files</FormLabel>
                         <FormControl>
-                          <Uploader />
+                          <UploadDropzoneProgress control={uploadControl} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Field>
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        "Save Quote"
-                      )}
-                    </Button>
-                  </Field>
+                  <Button
+                    type="submit"
+                    disabled={form.formState.isSubmitting}
+                    className="w-full cursor-pointer"
+                  >
+                    {form.formState.isSubmitting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Save Quote"
+                    )}
+                  </Button>
                 </form>
               </Form>
             </CardContent>

@@ -60,12 +60,19 @@ const ComboboxContext = createContext<ComboboxContextType>({
 });
 
 export type ComboboxProps = ComponentProps<typeof Popover> & {
+  /** The list of items in the combobox. */
   data: ComboboxData[];
+  /** The type/label of the items being selected (e.g., "supplier", "client", "author"). Used in placeholder text, empty states, and create new messages. */
   type: string;
+  /** The initial selected value when the component is uncontrolled. */
   defaultValue?: string;
+  /** The controlled selected value. When provided, the component becomes controlled. */
   value?: string;
+  /** Callback function called when the selected value changes. */
   onValueChange?: (value: string) => void;
+  /** Controls whether the popover is open. When provided, the component becomes controlled. */
   open?: boolean;
+  /** Callback function called when the popover open state changes. */
   onOpenChange?: (open: boolean) => void;
 };
 
