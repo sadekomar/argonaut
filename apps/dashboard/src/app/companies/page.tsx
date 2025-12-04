@@ -1,9 +1,8 @@
 "use client";
 
 import {
-  GetCompaniesResponse,
-  useGetCompanies,
-  useGetCompaniesMetadata,
+  useReadCompanies,
+  useReadCompaniesMetadata,
 } from "./_components/use-companies";
 import { CompaniesTable } from "./companies-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +13,8 @@ export default function CompaniesPage() {
     { data: companies, isPending },
     { data: companiesMetadata, isPending: companiesMetadataPending },
   ] = [
-    useGetCompanies({ perPage: 1000 }), // Fetch more companies for potential future use
-    useGetCompaniesMetadata(),
+    useReadCompanies({ perPage: 1000 }), // Fetch more companies for potential future use
+    useReadCompaniesMetadata(),
   ];
 
   return (

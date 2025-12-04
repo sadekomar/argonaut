@@ -1,7 +1,6 @@
 "use server";
 
-import { prisma } from "@repo/db";
-import type { CompanyType, Prisma } from "@repo/db";
+import { prisma, Prisma, CompanyType } from "@repo/db";
 
 interface ReadCompaniesParams {
   page?: number;
@@ -102,22 +101,22 @@ export const readCompaniesMetadata = async () => {
       prisma.company.count(),
       prisma.company.count({
         where: {
-          type: "SUPPLIER",
+          type: CompanyType.SUPPLIER,
         },
       }),
       prisma.company.count({
         where: {
-          type: "CLIENT",
+          type: CompanyType.CLIENT,
         },
       }),
       prisma.company.count({
         where: {
-          type: "CONTRACTOR",
+          type: CompanyType.CONTRACTOR,
         },
       }),
       prisma.company.count({
         where: {
-          type: "CONSULTANT",
+          type: CompanyType.CONSULTANT,
         },
       }),
     ]);

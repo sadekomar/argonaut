@@ -19,27 +19,12 @@ import { useState } from "react";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { MaskInput } from "@/components/ui/mask-input";
 
-import {
-  createCompany,
-  createSupplier,
-} from "@/app/companies/_utils/create-company";
-import { createClient } from "@/app/companies/_utils/create-company";
+import { createCompany } from "@/app/companies/_utils/create-company";
 import { createProject } from "@/app/projects/_utils/create-project";
-import {
-  createContactPerson,
-  createPerson,
-} from "@/app/people/_utils/create-person";
-import { createAuthor } from "@/app/people/_utils/create-person";
-import {
-  readAuthors,
-  readClients,
-  readContactPersons,
-  readProjects,
-  readSuppliers,
-} from "../_utils/read-suppliers";
+import { createPerson } from "@/app/people/_utils/create-person";
 import { useUploadFiles } from "better-upload/client";
 import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCreateQuote, useUpdateQuote } from "./use-quotes";
 import {
   Select,
@@ -49,10 +34,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useReadPeople } from "@/app/people/_components/use-people";
-import { CompanyType, PersonType } from "@repo/db";
 import { mapToSelectOptions } from "@/lib/utils";
 import { useReadCompanies } from "@/app/companies/_components/use-companies";
 import { useReadProjects } from "@/app/projects/_components/use-projects";
+import { CompanyType, PersonType } from "@/lib/enums";
 
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);

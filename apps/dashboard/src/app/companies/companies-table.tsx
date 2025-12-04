@@ -33,7 +33,10 @@ import {
 import { useDataTable } from "@/hooks/use-data-table";
 import { getSortingStateParser } from "@/lib/parsers";
 import { readCompanies } from "./_utils/read-companies";
-import { useEditCompany, useDeleteCompany } from "./_components/use-companies";
+import {
+  useUpdateCompany,
+  useDeleteCompany,
+} from "./_components/use-companies";
 import type { CompanyType } from "@repo/db";
 
 interface Company {
@@ -71,7 +74,7 @@ const getTypeBadgeVariant = (type: CompanyType) => {
 };
 
 export function CompaniesTable() {
-  const editCompany = useEditCompany();
+  const editCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
 
   // Read URL query state for pagination

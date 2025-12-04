@@ -16,4 +16,3 @@ export const readAllCompanies = async () => {
 
   return companyOptions;
 };
-

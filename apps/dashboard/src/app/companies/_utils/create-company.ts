@@ -1,7 +1,6 @@
 "use server";
 
 import { Prisma, prisma } from "@repo/db";
-import { revalidatePath } from "next/cache";
 import { CompanyType } from "@repo/db";
 
 export interface CreateCompanyForm {

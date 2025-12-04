@@ -15,9 +15,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
-import { createCompany } from "../_utils/create-company";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCreateCompany, useUpdateCompany } from "./use-companies";
 
 const companyTypeEnum = z.enum([
   "SUPPLIER",
@@ -26,7 +24,7 @@ const companyTypeEnum = z.enum([
   "CONSULTANT",
 ]);
 
-const addCompanySchema = z.object({
+const createCompanySchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }),
   email: z
     .string()
@@ -40,59 +38,45 @@ const addCompanySchema = z.object({
   type: companyTypeEnum,
 });
 
-export type AddCompanyForm = z.infer<typeof addCompanySchema>;
+export type CreateCompanyForm = z.infer<typeof createCompanySchema>;
 
-export function AddCompanyForm() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+export function CompanyForm({
+  defaultValues,
+  companyId,
+  onSubmit,
+}: {
+  defaultValues: CreateCompanyForm;
+  companyId: string;
+  onSubmit: () => void;
+}) {
+  const mode = companyId ? "edit" : "create";
+  const { mutateAsync: createCompany } = useCreateCompany();
+  const { mutateAsync: updateCompany } = useUpdateCompany();
 
-  const form = useForm<AddCompanyForm>({
-    resolver: zodResolver(addCompanySchema),
+  const form = useForm<CreateCompanyForm>({
+    resolver: zodResolver(createCompanySchema),
     defaultValues: {
       name: "",
       email: "",
       phone: "",
-      type: "CLIENT",
     },
   });
 
-  const submitCompany = async (data: AddCompanyForm) => {
+  const submitCompany = async (data: CreateCompanyForm) => {
     try {
-      const result = await createCompany({
-        name: data.name,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        type: data.type,
-      });
-
-      if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ["companies"] });
-        queryClient.invalidateQueries({ queryKey: ["companiesMetadata"] });
-        router.push("/companies");
-      } else if (result.errors) {
-        // Handle form errors
-        Object.entries(result.errors).forEach(([field, messages]) => {
-          form.setError(field as keyof AddCompanyForm, {
-            message: messages?.[0] || "An error occurred",
-          });
-        });
+      if (mode === "create") {
+        await createCompany(data);
+      } else {
+        await updateCompany({ id: companyId, ...data });
       }
-    } catch (e) {
-      console.error("Error submitting company:", e);
-      form.setError("root", {
-        message: "Failed to submit. Please try again.",
-      });
+    } catch (error) {
+      console.error("Error submitting company:", error);
     }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(submitCompany, (errors) => {
-          console.log("Form validation errors:", errors);
-        })}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(submitCompany)} className="space-y-6">
         <FieldGroup>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
