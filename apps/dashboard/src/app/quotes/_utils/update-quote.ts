@@ -7,6 +7,7 @@ import { QuoteForm } from "../_components/quote-form";
 
 export async function updateQuote(id: string, data: Partial<QuoteForm>) {
   const {
+    referenceNumber,
     value,
     date,
     currency,
@@ -22,59 +23,35 @@ export async function updateQuote(id: string, data: Partial<QuoteForm>) {
   } = data;
 
   try {
-    const updateData: Prisma.QuoteUpdateInput = {};
-
-    if (date !== undefined) {
-      updateData.date = new Date(date);
-    }
-
-    if (currency !== undefined) {
-      updateData.currency = currency as Currency;
-    }
-
-    if (value !== undefined) {
-      updateData.value = Number(value);
-    }
-
-    if (notes !== undefined) {
-      updateData.notes = notes || null;
-    }
-
-    if (authorId !== undefined) {
-      updateData.author = { connect: { id: authorId } };
-    }
-
-    if (clientId !== undefined) {
-      updateData.client = { connect: { id: clientId } };
-    }
-
-    if (projectId !== undefined) {
-      updateData.project = { connect: { id: projectId } };
-    }
-
-    if (supplierId !== undefined) {
-      updateData.supplier = supplierId
-        ? { connect: { id: supplierId } }
-        : { disconnect: true };
-    }
-
-    if (contactPersonId !== undefined) {
-      updateData.contactPerson = { connect: { id: contactPersonId } };
-    }
-
-    if (quoteOutcome !== undefined) {
-      updateData.quoteOutcome = quoteOutcome as QuoteOutcome;
-    }
-
-    if (approximateSiteDeliveryDate !== undefined) {
-      updateData.approximateSiteDeliveryDate = approximateSiteDeliveryDate
-        ? new Date(approximateSiteDeliveryDate)
-        : null;
-    }
-
-    if (objectKeys !== undefined) {
-      updateData.objectKeys = objectKeys;
-    }
+    const updateData: Prisma.QuoteUpdateInput = {
+      ...(referenceNumber !== undefined && { referenceNumber }),
+      ...(date !== undefined && { date: new Date(date) }),
+      ...(currency !== undefined && { currency: currency as Currency }),
+      ...(value !== undefined && { value: Number(value) }),
+      ...(notes !== undefined && { notes: notes || null }),
+      ...(authorId !== undefined && { author: { connect: { id: authorId } } }),
+      ...(clientId !== undefined && { client: { connect: { id: clientId } } }),
+      ...(projectId !== undefined && {
+        project: { connect: { id: projectId } },
+      }),
+      ...(supplierId !== undefined && {
+        supplier: supplierId
+          ? { connect: { id: supplierId } }
+          : { disconnect: true },
+      }),
+      ...(contactPersonId !== undefined && {
+        contactPerson: { connect: { id: contactPersonId } },
+      }),
+      ...(quoteOutcome !== undefined && {
+        quoteOutcome: quoteOutcome as QuoteOutcome,
+      }),
+      ...(approximateSiteDeliveryDate !== undefined && {
+        approximateSiteDeliveryDate: approximateSiteDeliveryDate
+          ? new Date(approximateSiteDeliveryDate)
+          : null,
+      }),
+      ...(objectKeys !== undefined && { objectKeys }),
+    };
 
     await prisma.quote.update({
       where: { id },

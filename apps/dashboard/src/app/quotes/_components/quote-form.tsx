@@ -49,7 +49,7 @@ const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);
 
 const quoteFormSchema = z.object({
-  serialNumber: z.string().optional(),
+  referenceNumber: z.string().trim().optional(),
   date: z.string().trim().min(1, { message: "Date is required" }),
   currency: currencyEnum,
   value: z.string().min(1, { message: "Value is required" }),
@@ -93,7 +93,7 @@ export function QuoteForm({
   const form = useForm<QuoteForm>({
     resolver: zodResolver(quoteFormSchema),
     defaultValues: defaultValues ?? {
-      serialNumber: "",
+      referenceNumber: "",
       date: "",
       currency: "EGP",
       value: "",
@@ -172,10 +172,10 @@ export function QuoteForm({
           {mode === "edit" && (
             <FormField
               control={form.control}
-              name="serialNumber"
+              name="referenceNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Serial Number</FormLabel>
+                  <FormLabel>Reference Number</FormLabel>
                   <FormControl>
                     <Input type="text" {...field} />
                   </FormControl>

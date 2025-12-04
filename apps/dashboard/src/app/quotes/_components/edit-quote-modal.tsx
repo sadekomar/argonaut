@@ -33,7 +33,7 @@ export function EditQuoteModal({
         <QuoteForm
           quoteId={quote.id}
           defaultValues={{
-            serialNumber: quote.serialNumber.toString(),
+            referenceNumber: quote.referenceNumber,
             date: formatDateForInput(quote.date),
             currency: quote.currency,
             value: quote.value.toString(),
