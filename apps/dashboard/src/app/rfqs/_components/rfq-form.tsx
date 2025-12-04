@@ -1,8 +1,10 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { useReadCompanies } from "@/app/companies/_components/use-companies";
+import { useReadPeople } from "@/app/people/_components/use-people";
+import { createPerson } from "@/app/people/_utils/create-person";
+import { useReadProjects } from "@/app/projects/_components/use-projects";
+import CreateNewCombobox from "@/components/create-new-combobox";
+import { mapToSelectOptions } from "@/lib/utils";
 import { FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -11,36 +13,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
-import CreateNewCombobox from "@/components/create-new-combobox";
+import { Input } from "@/components/ui/input";
 import { MaskInput } from "@/components/ui/mask-input";
-
-import {
-  createCompany,
-  createSupplier,
-} from "@/app/companies/_utils/create-company";
-import { createClient } from "@/app/companies/_utils/create-company";
-import { createProject } from "@/app/projects/_utils/create-project";
-import {
-  createContactPerson,
-  createPerson,
-} from "@/app/people/_utils/create-person";
-import { createAuthor } from "@/app/people/_utils/create-person";
-import {
-  readAuthors,
-  readClients,
-  readContactPersons,
-  readProjects,
-  readSuppliers,
-} from "../_utils/read-suppliers";
-import { useUploadFiles } from "better-upload/client";
-import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCreateQuote, useUpdateQuote } from "./use-quotes";
 import {
   Select,
   SelectContent,
@@ -48,83 +22,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useReadPeople } from "@/app/people/_components/use-people";
-import { CompanyType, PersonType } from "@repo/db";
-import { mapToSelectOptions } from "@/lib/utils";
-import { useReadCompanies } from "@/app/companies/_components/use-companies";
-import { useReadProjects } from "@/app/projects/_components/use-projects";
+import { CompanyType, Currency, PersonType } from "@repo/db";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { createCompany } from "@/app/companies/_utils/create-company";
+import { createProject } from "@/app/projects/_utils/create-project";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
-const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);
-
-const quoteFormSchema = z.object({
-  referenceNumber: z.string().trim().optional(),
-  date: z.string().trim().min(1, { message: "Date is required" }),
-  currency: currencyEnum,
-  value: z.string().min(1, { message: "Value is required" }),
-  notes: z.string().trim().optional(),
-  authorId: z.string().trim().min(1, { message: "Author is required" }),
-  supplierId: z.string().trim().min(1, { message: "Supplier is required" }),
-  clientId: z.string().trim().min(1, { message: "Client is required" }),
-  projectId: z.string().trim().min(1, { message: "Project is required" }),
-  quoteOutcome: quoteOutcomeEnum.optional(),
-  contactPersonId: z
-    .string()
-    .trim()
-    .min(1, { message: "Contact person is required" }),
-  approximateSiteDeliveryDate: z.string().trim().optional(),
-  objectKeys: z
-    .array(z.string())
-    .min(1, { message: "Related files are required" }),
+const rfqFormSchema = z.object({
+  referenceNumber: z.string(),
+  date: z.string(),
+  currency: z.enum(Currency),
+  value: z.string(),
+  notes: z.string(),
+  authorId: z.string(),
+  supplierId: z.string(),
+  clientId: z.string(),
+  projectId: z.string(),
+  rfqReceivedAt: z.string(),
+  quoteId: z.string(),
 });
 
-export type QuoteForm = z.infer<typeof quoteFormSchema>;
+type rfqFormInput = z.infer<typeof rfqFormSchema>;
 
-interface QuoteFormProps {
-  // default values could be passed in create mode too. for example, loading initial data from local storage.
-  defaultValues?: QuoteForm;
-  quoteId?: string;
-  onSubmit: (data: QuoteForm) => void;
-}
-
-export function QuoteForm({
+function RfqForm({
+  rfqId,
   defaultValues,
-  quoteId,
   onSubmit,
-}: QuoteFormProps) {
-  const mode = quoteId ? "edit" : "add";
-  const createQuote = useCreateQuote();
-  const updateQuote = useUpdateQuote();
+}: {
+  rfqId: string;
+  defaultValues: rfqFormInput;
+  onSubmit: () => void;
+}) {
+  const mode = rfqId ? "edit" : "add";
 
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
-  const queryClient = useQueryClient();
-
-  const form = useForm<QuoteForm>({
-    resolver: zodResolver(quoteFormSchema),
-    defaultValues: defaultValues ?? {
-      referenceNumber: "",
-      date: "",
-      currency: "EGP",
-      value: "",
-      notes: "",
-      authorId: "",
-      clientId: "",
-      projectId: "",
-      contactPersonId: "",
-      supplierId: "",
-      approximateSiteDeliveryDate: "",
-      quoteOutcome: undefined,
-      objectKeys: [],
-    },
-  });
 
   // fetch data needed for form
   const { data: projects } = useReadProjects();
   const { data: authors } = useReadPeople({
     type: [PersonType.AUTHOR],
-  });
-  const { data: contactPersons } = useReadPeople({
-    type: [PersonType.CONTACT_PERSON],
   });
   const { data: clients } = useReadCompanies({
     type: [CompanyType.CLIENT],
@@ -132,51 +71,34 @@ export function QuoteForm({
   const { data: suppliers } = useReadCompanies({
     type: [CompanyType.SUPPLIER],
   });
-
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
-  const contactPersonsInitialOptions = mapToSelectOptions(contactPersons?.data);
   const authorsInitialOptions = mapToSelectOptions(authors?.data);
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
 
-  const { control: uploadControl } = useUploadFiles({
-    route: "form",
-    onUploadComplete: ({ files }) => {
-      form.setValue(
-        "objectKeys",
-        files.map((file) => file.objectKey)
-      );
-    },
-    onError: (error) => {
-      form.setError("objectKeys", {
-        message: error.message || "An error occurred",
-      });
+  const form = useForm({
+    defaultValues: defaultValues ?? {
+      referenceNumber: "",
+      date: "",
+      currency: "",
+      value: "",
+      notes: "",
+      authorId: "",
+      supplierId: "",
+      clientId: "",
+      projectId: "",
+      rfqReceivedAt: "",
+      quoteId: "",
     },
   });
 
-  const submitQuote = async (data: QuoteForm) => {
-    try {
-      onSubmit(data);
-      if (mode === "add") {
-        await createQuote.mutateAsync(data);
-      } else {
-        await updateQuote.mutateAsync({ id: quoteId!, data });
-      }
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
-      uploadControl.reset();
-      form.reset();
-    } catch (e) {
-      console.error("Error submitting quote:", e);
-      form.setError("root", {
-        message: "Failed to submit. Please try again.",
-      });
-    }
+  const submitRfq = () => {
+    // hello world
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submitQuote)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(submitRfq)} className="space-y-6">
         <FieldGroup>
           {mode === "edit" && (
             <FormField
@@ -326,7 +248,6 @@ export function QuoteForm({
                           name: value.name,
                           type: CompanyType.SUPPLIER,
                         });
-
                         return supplier.id;
                       }}
                       label="supplier"
@@ -364,83 +285,6 @@ export function QuoteForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="contactPersonId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person</FormLabel>
-                  <FormControl>
-                    <CreateNewCombobox
-                      initialOptions={contactPersonsInitialOptions}
-                      createNewFunction={async (value) => {
-                        const withCompany = {
-                          ...value,
-                          companyId: form.getValues("clientId") ?? undefined,
-                          type: PersonType.CONTACT_PERSON,
-                        };
-                        const contactPerson = await createPerson(withCompany);
-                        return contactPerson.id;
-                      }}
-                      label="contact person"
-                      value={field.value ?? ""}
-                      onValueChange={(value) => field.onChange(value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="approximateSiteDeliveryDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Approx. Site Delivery Date{" "}
-                    <span className="text-muted-foreground">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quoteOutcome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Quote Outcome{" "}
-                    <span className="text-muted-foreground">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value || undefined}
-                      onValueChange={(value) =>
-                        field.onChange(value || undefined)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select quote outcome" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="WON">Won</SelectItem>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="LOST">Lost</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <FormField
@@ -465,20 +309,6 @@ export function QuoteForm({
             )}
           />
         </FieldGroup>
-
-        <FormField
-          control={form.control}
-          name="objectKeys"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Related Files</FormLabel>
-              <FormControl>
-                <UploadDropzoneProgress control={uploadControl} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Button
           type="submit"

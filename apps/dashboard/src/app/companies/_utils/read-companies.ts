@@ -130,3 +130,11 @@ export const readCompaniesMetadata = async () => {
     consultants,
   };
 };
+export const readSuppliers = async () => {
+  const suppliers = await prisma.company.findMany({
+    where: {
+      type: CompanyType.SUPPLIER,
+    },
+  });
+  return suppliers;
+};

@@ -116,4 +116,3 @@ export const readProjectsMetadata = async () => {
     tenderProjects,
   };
 };
-

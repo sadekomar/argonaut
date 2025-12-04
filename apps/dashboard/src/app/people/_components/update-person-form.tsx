@@ -20,8 +20,8 @@ import CreateNewCombobox from "@/components/create-new-combobox";
 import { updatePerson } from "../_utils/update-person";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readAllCompanies } from "../../registrations/_utils/read-companies";
-import { createClient } from "../../quotes/_utils/create-supplier";
-import { useGetPeople } from "./use-people";
+import { createClient } from "@/app/companies/_utils/create-company";
+import { useReadPeople } from "./use-people";
 
 const personTypeEnum = z.enum(["AUTHOR", "CONTACT_PERSON", "INTERNAL"]);
 
@@ -47,7 +47,7 @@ export function UpdatePersonForm({
   const queryClient = useQueryClient();
 
   // Fetch all people to find the person being edited
-  const { data: peopleData } = useGetPeople({ perPage: 1000 });
+  const { data: peopleData } = useReadPeople({ perPage: 1000 });
   const person = peopleData?.data.find((p) => p.id === personId);
 
   const form = useForm<UpdatePersonForm>({

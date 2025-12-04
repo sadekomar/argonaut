@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetPeople, useGetPeopleMetadata } from "./_components/use-people";
+import { useReadPeople, useGetPeopleMetadata } from "./_components/use-people";
 import { PeopleTable } from "./people-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +11,7 @@ export default function PeopleAllPage() {
     { data: people, isPending },
     { data: peopleMetadata, isPending: peopleMetadataPending },
   ] = [
-    useGetPeople({ perPage: 1000 }), // Fetch more people for stats
+    useReadPeople({ perPage: 1000 }), // Fetch more people for stats
     useGetPeopleMetadata(),
   ];
 

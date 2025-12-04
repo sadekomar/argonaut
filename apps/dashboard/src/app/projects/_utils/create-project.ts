@@ -1,44 +1,28 @@
 "use server";
 
-import { Prisma, prisma } from "@repo/db";
-import { revalidatePath } from "next/cache";
+import { prisma } from "@repo/db";
 import type { ProjectStatus } from "@repo/db";
 
-export interface CreateProjectForm {
+export type CreateProjectProps = {
+  id?: string;
   name: string;
   status?: ProjectStatus;
   companyId?: string;
-}
+};
 
-export async function createProject(data: CreateProjectForm) {
-  const { name, status, companyId } = data;
-
-  try {
-    const project = await prisma.project.create({
-      data: {
-        name,
-        ...(status && { status }),
-        ...(companyId && { company: { connect: { id: companyId } } }),
-      },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    revalidatePath("/");
-    return project;
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002") {
-        return { errors: { name: ["Project with this name already exists"] } };
-      }
-    }
-    throw e;
-  }
-}
-
+export const createProject = async ({
+  id,
+  name,
+  status,
+  companyId,
+}: CreateProjectProps) => {
+  const project = await prisma.project.create({
+    data: {
+      id: id,
+      name: name,
+      status: status ?? undefined,
+      companyId: companyId ?? undefined,
+    },
+  });
+  return project;
+};

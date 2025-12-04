@@ -2,7 +2,7 @@
 
 import {
   GetProjectsResponse,
-  useGetProjects,
+  useReadProjects,
   useGetProjectsMetadata,
 } from "./_components/use-projects";
 import { ProjectsTable } from "./_components/projects-table";
@@ -14,7 +14,7 @@ export default function ProjectsPage() {
     { data: projects, isPending },
     { data: projectsMetadata, isPending: projectsMetadataPending },
   ] = [
-    useGetProjects({ perPage: 1000 }), // Fetch more projects for potential future use
+    useReadProjects({ perPage: 1000 }), // Fetch more projects for potential future use
     useGetProjectsMetadata(),
   ];
 

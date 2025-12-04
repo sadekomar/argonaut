@@ -1,11 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  readProjects,
-  readProjectsMetadata,
-} from "../_utils/read-projects";
+import { readProjects, readProjectsMetadata } from "../_utils/read-projects";
 import { updateProject, UpdateProjectForm } from "../_utils/update-project";
 import { deleteProject } from "../_utils/delete-project";
-import { createProject, CreateProjectForm } from "../_utils/create-project";
+import { createProject, CreateProjectProps } from "../_utils/create-project";
 
 export type GetProjectsResponse = Awaited<ReturnType<typeof readProjects>>;
 export type GetProjectsDataResponse = GetProjectsResponse["data"];
@@ -25,7 +22,7 @@ const toast = {
   error: (message: string) => console.error(`❌ ${message}`),
 };
 
-export const useGetProjects = (
+export const useReadProjects = (
   params?: Parameters<typeof readProjects>[0]
 ) => {
   return useQuery({
@@ -43,7 +40,7 @@ export const useGetProjectsMetadata = () => {
 
 export const useCreateProject = () => {
   return useMutation({
-    mutationFn: (data: CreateProjectForm) => createProject(data),
+    mutationFn: (data: CreateProjectProps) => createProject(data),
     mutationKey: ["createProject"],
   });
 };
@@ -145,4 +142,3 @@ export const useDeleteProject = () => {
     },
   });
 };
-

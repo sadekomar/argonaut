@@ -19,7 +19,7 @@ import CreateNewCombobox from "@/components/create-new-combobox";
 import { createPerson } from "../_utils/create-person";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readAllCompanies } from "../../registrations/_utils/read-companies";
-import { createClient } from "../../quotes/_utils/create-supplier";
+import { createClient } from "@/app/companies/_utils/create-company";
 
 const personTypeEnum = z.enum(["AUTHOR", "CONTACT_PERSON", "INTERNAL"]);
 

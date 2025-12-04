@@ -15,10 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import CreateNewCombobox from "@/components/create-new-combobox";
-import {
-  createAuthor,
-  createClient,
-} from "../../quotes/_utils/create-supplier";
+import { createClient } from "@/app/companies/_utils/create-company";
+import { createAuthor } from "@/app/people/_utils/create-person";
 import { readAuthors, readClients } from "../../quotes/_utils/read-suppliers";
 import { useUploadFiles } from "better-upload/client";
 import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";

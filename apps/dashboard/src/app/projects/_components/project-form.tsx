@@ -19,8 +19,12 @@ import { useEffect } from "react";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readAllCompanies } from "../../registrations/_utils/read-companies";
-import { createClient } from "../../quotes/_utils/create-supplier";
-import { useCreateProject, useEditProject, useGetProjects } from "./use-projects";
+import { createClient } from "@/app/companies/_utils/create-company";
+import {
+  useCreateProject,
+  useEditProject,
+  useReadProjects,
+} from "./use-projects";
 
 const projectStatusEnum = z.enum(["IN_HAND", "TENDER"]);
 
@@ -50,7 +54,7 @@ export function ProjectForm({
   const queryClient = useQueryClient();
 
   // Fetch project data if in edit mode and defaultValues not provided
-  const { data: projectsData } = useGetProjects(
+  const { data: projectsData } = useReadProjects(
     mode === "edit" && !defaultValues ? { perPage: 1000 } : undefined
   );
   const project =
@@ -118,10 +122,7 @@ export function ProjectForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(submitProject)}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(submitProject)} className="space-y-6">
         <FieldGroup>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -179,9 +180,7 @@ export function ProjectForm({
                       }}
                       label="company"
                       value={field.value ?? ""}
-                      onValueChange={(value) =>
-                        field.onChange(value || null)
-                      }
+                      onValueChange={(value) => field.onChange(value || null)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -208,4 +207,3 @@ export function ProjectForm({
     </Form>
   );
 }
-

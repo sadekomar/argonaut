@@ -27,3 +27,14 @@ export function generateEmptyMonths(
 
   return months;
 }
+
+export function mapToSelectOptions<T extends { id: string; name: string }>(
+  items: T[] | undefined
+): Array<{ value: string; label: string }> {
+  return (
+    items?.map((item) => ({
+      value: item.id,
+      label: item.name,
+    })) ?? []
+  );
+}

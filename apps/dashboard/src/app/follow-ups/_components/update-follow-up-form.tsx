@@ -20,7 +20,7 @@ import { updateFollowUp } from "../_utils/update-follow-up";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readQuotes } from "../_utils/read-quotes";
 import { readAuthors } from "../../quotes/_utils/read-suppliers";
-import { createAuthor } from "../../quotes/_utils/create-supplier";
+import { createAuthor } from "@/app/people/_utils/create-person";
 import { useGetFollowUps } from "./use-follow-ups";
 
 const updateFollowUpSchema = z.object({
@@ -101,10 +101,7 @@ export function UpdateFollowUpForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(submitFollowUp)}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(submitFollowUp)} className="space-y-6">
         <FieldGroup>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -188,4 +185,3 @@ export function UpdateFollowUpForm({
     </Form>
   );
 }
-

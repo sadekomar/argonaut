@@ -18,7 +18,7 @@ import CreateNewCombobox from "@/components/create-new-combobox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { readQuotes } from "../_utils/read-quotes";
 import { readAuthors } from "../../quotes/_utils/read-suppliers";
-import { createAuthor } from "../../quotes/_utils/create-supplier";
+import { createAuthor } from "@/app/people/_utils/create-person";
 import { createFollowUp } from "../_utils/create-follow-up";
 
 const addFollowUpSchema = z.object({

@@ -21,7 +21,7 @@ const toast = {
   error: (message: string) => console.error(`❌ ${message}`),
 };
 
-export const useGetPeople = (params?: Parameters<typeof readPeople>[0]) => {
+export const useReadPeople = (params?: Parameters<typeof readPeople>[0]) => {
   return useQuery({
     queryKey: ["people", params],
     queryFn: () => readPeople(params),
