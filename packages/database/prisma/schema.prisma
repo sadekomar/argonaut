@@ -214,24 +214,25 @@ enum PersonType {
 }
 
 model Person {
-  id               String         @id @default(uuid())
-  name             String
-  email            String?
-  phone            String?
+  id                      String         @id @default(uuid())
+  name                    String
+  email                   String?
+  phone                   String?
   // Internal sales person creating quotes
-  authoredQuotes   Quote[]        @relation("Author")
+  authoredQuotes          Quote[]        @relation("Author")
   // External contact person for quotes
-  contactForQuotes Quote[]        @relation("ContactPerson")
-  authoredRfqs     Rfq[]
-  companyId        String?
-  company          Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  type             PersonType     @default(INTERNAL)
-  userId           String?        @unique
-  user             User?          @relation(fields: [userId], references: [id])
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  Registration     Registration[]
-  FollowUp         FollowUp[]
+  contactForQuotes        Quote[]        @relation("ContactPerson")
+  authoredRfqs            Rfq[]
+  companyId               String?
+  company                 Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type                    PersonType     @default(INTERNAL)
+  userId                  String?        @unique
+  user                    User?          @relation(fields: [userId], references: [id])
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  Registration            Registration[]
+  FollowUp                FollowUp[]
+  companiesResponsibleFor Company[]      @relation("ResponsibleSalesPerson")
 }
 
 model Company {
@@ -248,7 +249,7 @@ model Company {
   people                   Person[]
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
-  responsibleSalesPerson   Person?        @relation(fields: [responsibleSalesPersonId], references: [id])
+  responsibleSalesPerson   Person?        @relation("ResponsibleSalesPerson", fields: [responsibleSalesPersonId], references: [id])
   responsibleSalesPersonId String?
   Registration             Registration[]
 }
