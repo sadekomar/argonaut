@@ -9,7 +9,6 @@ export const readSuppliers = async () => {
       type: CompanyType.SUPPLIER,
     },
   });
-  console.log("suppliers", suppliers);
 
   const supplierOptions = suppliers.map((supplier) => ({
     value: supplier.id,

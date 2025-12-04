@@ -13,9 +13,19 @@ import {
   Briefcase,
   UserCheck,
 } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
+import { usePathname } from "next/navigation";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
@@ -24,7 +34,10 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
+import Image from "next/image";
 
 const data = {
   user: {
@@ -38,16 +51,6 @@ const data = {
       logo: Building2,
       plan: "Enterprise",
     },
-    // {
-    //   name: "Argonaut Sales",
-    //   logo: TrendingUp,
-    //   plan: "Professional",
-    // },
-    // {
-    //   name: "Argonaut Operations",
-    //   logo: Briefcase,
-    //   plan: "Standard",
-    // },
   ],
   navMain: [
     {
@@ -61,20 +64,20 @@ const data = {
           url: "/quotes",
         },
         {
+          title: "Follow ups",
+          url: "/follow-ups",
+        },
+        {
           title: "Won Quotes",
-          url: "/quotes?status=won",
+          url: "/quotes?quoteOutcome=WON",
         },
         {
           title: "Pending Quotes",
-          url: "/quotes?status=pending",
+          url: "/quotes?quoteOutcome=PENDING",
         },
         {
           title: "Lost Quotes",
-          url: "/quotes?status=lost",
-        },
-        {
-          title: "Create Quote",
-          url: "/quotes/new",
+          url: "/quotes?quoteOutcome=LOST",
         },
       ],
     },
@@ -175,85 +178,95 @@ const data = {
       ],
     },
     {
-      title: "Analytics",
-      url: "/analytics",
-      icon: PieChart,
-      items: [
-        {
-          title: "Quote Performance",
-          url: "/analytics/quotes",
-        },
-        {
-          title: "Company Overview",
-          url: "/analytics/companies",
-        },
-        {
-          title: "Project Status",
-          url: "/analytics/projects",
-        },
-        {
-          title: "Revenue Reports",
-          url: "/analytics/revenue",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "/settings/general",
-        },
-        {
-          title: "Users & Permissions",
-          url: "/settings/users",
-        },
-        {
-          title: "Company Settings",
-          url: "/settings/company",
-        },
-        {
-          title: "Currency & Rates",
-          url: "/settings/currency",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "MEP Engineering",
-      url: "/projects/mep",
-      icon: Building2,
-    },
-    {
-      name: "EPC Ventures",
-      url: "/projects/epc",
-      icon: Handshake,
-    },
-    {
-      name: "Quality Assurance",
-      url: "/projects/quality",
+      title: "Registrations",
+      url: "/registrations",
       icon: UserCheck,
+      items: [
+        {
+          title: "All Registrations",
+          url: "/registrations",
+        },
+        {
+          title: "Verified",
+          url: "/registrations?registrationStatus=VERIFIED",
+        },
+        {
+          title: "Under Review",
+          url: "/registrations?registrationStatus=UNDER_REVIEW",
+        },
+        {
+          title: "On Hold",
+          url: "/registrations?registrationStatus=ON_HOLD",
+        },
+        {
+          title: "Pursuing",
+          url: "/registrations?registrationStatus=PURSUING",
+        },
+      ],
+    },
+    {
+      title: "Resources",
+      url: "/resources",
+      icon: FileText,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
+
+  return !isLoginPage ? (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <Link
+          href="/"
+          className="flex items-center justify-center min-h-[2.5rem] group-data-[collapsible=icon]:hidden"
+        >
+          <Image
+            src="/argonaut-horizontal-small.webp"
+            alt="Argonaut"
+            width={140}
+            height={40}
+            className="h-8 w-auto object-contain"
+            priority
+          />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  );
+  ) : null;
+}
+
+export function BreadcrumbsAndTrigger() {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
+  return !isLoginPage ? (
+    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div className="flex items-center gap-2 px-4">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mr-2 data-[orientation=vertical]:h-4"
+        />
+        {/* <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="#">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb> */}
+      </div>
+    </header>
+  ) : null;
 }

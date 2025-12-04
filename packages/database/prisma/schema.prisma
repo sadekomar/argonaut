@@ -235,27 +235,33 @@ model Person {
 }
 
 model Company {
-  id             String         @id @default(uuid())
-  name           String
-  email          String?
-  phone          String?
-  type           CompanyType    @default(CLIENT)
-  projects       Project[]
-  clientQuotes   Quote[]        @relation("ClientCompany")
-  supplierQuotes Quote[]        @relation("SupplierCompany")
-  clientRFQs     Rfq[]          @relation("ClientCompany")
-  supplierRFQs   Rfq[]          @relation("SupplierCompany")
-  people         Person[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  Registration   Registration[]
+  id                       String         @id @default(uuid())
+  name                     String
+  email                    String?
+  phone                    String?
+  type                     CompanyType    @default(CLIENT)
+  projects                 Project[]
+  clientQuotes             Quote[]        @relation("ClientCompany")
+  supplierQuotes           Quote[]        @relation("SupplierCompany")
+  clientRFQs               Rfq[]          @relation("ClientCompany")
+  supplierRFQs             Rfq[]          @relation("SupplierCompany")
+  people                   Person[]
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  responsibleSalesPerson   Person?        @relation(fields: [responsibleSalesPersonId], references: [id])
+  responsibleSalesPersonId String?
+  Registration             Registration[]
 }
 
+// one project could have many quotes and many companies actually
+// also one project could have many suppliers and many clients
 model Project {
   id        String         @id @default(uuid())
   name      String
   status    ProjectStatus?
   companyId String?
+  // a project could share many companies and the company-project is determined by the quote and not this redundant relationship
+  // client company
   company   Company?       @relation(fields: [companyId], references: [id])
   quotes    Quote[]
   rfqs      Rfq[]
