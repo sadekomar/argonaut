@@ -4,7 +4,7 @@ import "./globals.css";
 import Script from "next/script";
 import QueryProvider from "@/_provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { AppSidebar, BreadcrumbsAndTrigger } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
+      {/* <head>
         {process.env.NODE_ENV === "development" && (
           <Script
             src="//unpkg.com/react-grab/dist/index.global.js"
@@ -44,7 +44,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           src="https://tweakcn.com/live-preview.min.js"
         />
-      </head>
+      </head> */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -53,7 +53,6 @@ export default function RootLayout({
             <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
-                <BreadcrumbsAndTrigger />
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                   {children}
                 </div>

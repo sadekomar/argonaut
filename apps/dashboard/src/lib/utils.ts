@@ -38,3 +38,19 @@ export function mapToSelectOptions<T extends { id: string; name: string }>(
     })) ?? []
   );
 }
+export const formatDate = (date: Date | string) => {
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+export const formatCurrency = (value: number, currency: string) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
