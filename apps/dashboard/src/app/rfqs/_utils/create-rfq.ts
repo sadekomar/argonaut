@@ -1,8 +1,7 @@
 "use server";
 
-import { Prisma, prisma } from "@repo/db";
+import { Currency, Prisma, prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
-import { AddRfqForm } from "../add/page";
 
 // ExchangeRate-API Successful Response Type
 export type ExchangeRateSuccessResponse = {
@@ -30,7 +29,18 @@ export type ExchangeRateResponse =
   | ExchangeRateSuccessResponse
   | ExchangeRateErrorResponse;
 
-export async function createRfq(data: AddRfqForm) {
+export interface CreateRfqForm {
+  value: string;
+  date: string;
+  currency: string;
+  notes: string;
+  authorId: string;
+  clientId: string;
+  projectId: string;
+  supplierId: string;
+}
+
+export async function createRfq(data: CreateRfqForm) {
   const {
     value,
     date,
@@ -40,7 +50,6 @@ export async function createRfq(data: AddRfqForm) {
     clientId,
     projectId,
     supplierId,
-    rfqReceivedAt,
   } = data;
 
   // ARGO-RFQ-1xxx-mm-yyyy
@@ -77,14 +86,13 @@ export async function createRfq(data: AddRfqForm) {
         referenceNumber: referenceNumber,
         value: Number(value),
         date: new Date(date),
-        currency: currency,
+        currency: currency as Currency,
         rate: rate,
         notes: notes,
         authorId: authorId,
         clientId: clientId,
         projectId: projectId,
         supplierId: supplierId,
-        rfqReceivedAt: rfqReceivedAt ? new Date(rfqReceivedAt) : null,
       },
     });
 
