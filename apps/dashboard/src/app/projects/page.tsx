@@ -8,6 +8,7 @@ import {
 import { ProjectsTable } from "./_components/projects-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 
 export default function ProjectsPage() {
   const [
@@ -71,7 +72,9 @@ export default function ProjectsPage() {
               <CardTitle>Projects</CardTitle>
             </CardHeader>
             <CardContent>
-              <ProjectsTable />
+              <Suspense>
+                <ProjectsTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QuoteForm } from "./_components/quote-form";
 import { generateEmptyMonths } from "@/lib/utils";
 import { AddQuoteModal } from "./_components/add-quote-modal";
+import { Suspense } from "react";
 
 export default function QuotesAllPage() {
   const [
@@ -75,7 +76,9 @@ export default function QuotesAllPage() {
               <CardTitle>Quotes</CardTitle>
             </CardHeader>
             <CardContent>
-              <QuotesTable />
+              <Suspense>
+                <QuotesTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

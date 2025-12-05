@@ -7,6 +7,7 @@ import {
 import { CompaniesTable } from "./companies-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 
 export default function CompaniesPage() {
   const [
@@ -98,7 +99,9 @@ export default function CompaniesPage() {
               <CardTitle>Companies</CardTitle>
             </CardHeader>
             <CardContent>
-              <CompaniesTable />
+              <Suspense>
+                <CompaniesTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

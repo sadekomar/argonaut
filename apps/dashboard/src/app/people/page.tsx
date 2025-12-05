@@ -5,6 +5,7 @@ import { PeopleTable } from "./people-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddPersonModal } from "./_components/add-person-modal";
+import { Suspense } from "react";
 
 export default function PeopleAllPage() {
   const [
@@ -82,7 +83,9 @@ export default function PeopleAllPage() {
               <CardTitle>People</CardTitle>
             </CardHeader>
             <CardContent>
-              <PeopleTable />
+              <Suspense>
+                <PeopleTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

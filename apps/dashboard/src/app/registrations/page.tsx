@@ -9,6 +9,7 @@ import { RegistrationsTable } from "./registrations-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddRegistrationModal } from "./_components/add-registration-modal";
+import { Suspense } from "react";
 
 export default function RegistrationsPage() {
   const [
@@ -95,7 +96,9 @@ export default function RegistrationsPage() {
               <CardTitle>Registrations</CardTitle>
             </CardHeader>
             <CardContent>
-              <RegistrationsTable />
+              <Suspense>
+                <RegistrationsTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

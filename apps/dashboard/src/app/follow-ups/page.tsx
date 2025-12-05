@@ -9,6 +9,7 @@ import { FollowUpsTable } from "./follow-ups-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateEmptyMonths } from "@/lib/utils";
+import { Suspense } from "react";
 
 export default function FollowUpsPage() {
   const [
@@ -74,7 +75,9 @@ export default function FollowUpsPage() {
               <CardTitle>Follow-Ups</CardTitle>
             </CardHeader>
             <CardContent>
-              <FollowUpsTable />
+              <Suspense>
+                <FollowUpsTable />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

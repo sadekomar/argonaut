@@ -5,6 +5,7 @@ import { RfqsTable } from "./_components/rfqs-table";
 import { readRfqsMetadata } from "./_utils/read-rfqs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 
 export default function RfqsPage() {
   const { data: metadata, isLoading: metadataLoading } = useQuery({
@@ -79,7 +80,9 @@ export default function RfqsPage() {
           <CardTitle>RFQs</CardTitle>
         </CardHeader>
         <CardContent>
-          <RfqsTable />
+          <Suspense>
+            <RfqsTable />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
