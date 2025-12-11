@@ -5,6 +5,8 @@ import {
 } from "../_utils/read-follow-ups";
 import { updateFollowUp, UpdateFollowUpForm } from "../_utils/update-follow-up";
 import { deleteFollowUp } from "../_utils/delete-follow-up";
+import { createFollowUp, CreateFollowUpForm } from "../_utils/create-follow-up";
+import { toast } from "sonner";
 
 export type GetFollowUpsResponse = Awaited<ReturnType<typeof readFollowUps>>;
 export type GetFollowUpsDataResponse = GetFollowUpsResponse["data"];
@@ -17,12 +19,6 @@ function handleAbort<T extends (...args: any[]) => any>(
     return fn(...args);
   };
 }
-
-// Simple toast replacement
-const toast = {
-  success: (message: string) => console.log(`✅ ${message}`),
-  error: (message: string) => console.error(`❌ ${message}`),
-};
 
 export const useGetFollowUps = (
   params?: Parameters<typeof readFollowUps>[0]
@@ -37,6 +33,42 @@ export const useGetFollowUpsMetadata = () => {
   return useQuery({
     queryKey: ["followUpsMetadata"],
     queryFn: readFollowUpsMetadata,
+  });
+};
+
+export const useCreateFollowUp = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateFollowUpForm) => createFollowUp(data),
+    mutationKey: ["createFollowUp"],
+    onSuccess: () => {
+      toast.success("Follow-up created successfully");
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === "followUps",
+      });
+      queryClient.invalidateQueries({ queryKey: ["followUpsMetadata"] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to create follow-up: ${error.message}`);
+    },
+  });
+};
+
+export const useUpdateFollowUp = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateFollowUpForm) => updateFollowUp(data),
+    mutationKey: ["updateFollowUp"],
+    onSuccess: () => {
+      toast.success("Follow-up updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["followUps"] });
+      queryClient.invalidateQueries({ queryKey: ["followUpsMetadata"] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to update follow-up: ${error.message}`);
+    },
   });
 };
 
@@ -140,4 +172,3 @@ export const useDeleteFollowUp = () => {
     },
   });
 };
-

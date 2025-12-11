@@ -9,7 +9,8 @@ import { FollowUpsTable } from "./follow-ups-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateEmptyMonths } from "@/lib/utils";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
+import { CreateFollowUpModal } from "./_components/create-follow-up-modal";
 
 export default function FollowUpsPage() {
   const [
@@ -19,12 +20,20 @@ export default function FollowUpsPage() {
     useGetFollowUps({ perPage: 1000 }), // Fetch more follow-ups for chart
     useGetFollowUpsMetadata(),
   ];
+  const [isAddFollowUpModalOpen, setIsAddFollowUpModalOpen] = useState(false);
 
   const chartData = getChartData(followUps);
 
   return (
     <>
       <main className="flex-1 p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Quotes</h1>
+          <CreateFollowUpModal
+            open={isAddFollowUpModalOpen}
+            onOpenChange={setIsAddFollowUpModalOpen}
+          />
+        </div>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card>
             <CardHeader>

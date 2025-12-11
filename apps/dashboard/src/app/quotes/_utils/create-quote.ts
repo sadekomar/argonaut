@@ -3,6 +3,7 @@
 import { Prisma, prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { QuoteForm } from "../_components/quote-form";
+import { generateQuoteReferenceNumber, getRate } from "@/lib/utils";
 
 // ExchangeRate-API Successful Response Type
 export type ExchangeRateSuccessResponse = {
@@ -29,30 +30,6 @@ export type ExchangeRateErrorResponse = {
 export type ExchangeRateResponse =
   | ExchangeRateSuccessResponse
   | ExchangeRateErrorResponse;
-
-// 0: ARGO-Q-2xxx-mm-yyyy
-function generateQuoteReferenceNumber(
-  serialNumber: number,
-  date: Date | string
-) {
-  // Serial number should start with 2 and have three digits (e.g. 2001, 2002, ..., 2999)
-  const padded = String(serialNumber).padStart(3, "0");
-  const serial = `2${padded}`;
-  const d = new Date(date);
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `ARGO-Q-${serial}-${month}-${year}`;
-}
-
-async function getRate(code: string) {
-  const response = await fetch("https://open.er-api.com/v6/latest/EGP").then(
-    (res) => res.json() as Promise<ExchangeRateResponse>
-  );
-  if (response.result === "success") {
-    return response.rates[code];
-  }
-  throw new Error(response["error-type"]);
-}
 
 export async function createQuote(data: QuoteForm) {
   const {
@@ -97,6 +74,7 @@ export async function createQuote(data: QuoteForm) {
     revalidatePath("/");
     return { success: true };
   } catch (e) {
+    console.log("error creating quote", e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
         return {

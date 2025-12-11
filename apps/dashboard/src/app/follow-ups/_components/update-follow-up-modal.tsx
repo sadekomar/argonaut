@@ -7,18 +7,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UpdateFollowUpForm } from "./update-follow-up-form";
+import { FollowUpForm } from "./follow-up-form";
+import { FollowUp } from "../follow-ups-table";
 
 interface UpdateFollowUpModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  followUpId: string;
+  followUp: FollowUp;
 }
 
 export function UpdateFollowUpModal({
   open,
   onOpenChange,
-  followUpId,
+  followUp,
 }: UpdateFollowUpModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -27,12 +28,18 @@ export function UpdateFollowUpModal({
           <DialogTitle>Update Follow-Up</DialogTitle>
           <DialogDescription>Update follow-up details.</DialogDescription>
         </DialogHeader>
-        <UpdateFollowUpForm
-          followUpId={followUpId}
-          onSuccess={() => onOpenChange(false)}
+        <FollowUpForm
+          followUpId={followUp.id}
+          defaultValues={{
+            quoteId: followUp.quoteId,
+            authorId: followUp.authorId,
+            notes: followUp.notes || "",
+          }}
+          onSubmit={(data) => {
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>
   );
 }
-

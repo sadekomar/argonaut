@@ -23,6 +23,20 @@ export async function updateQuote(id: string, data: Partial<QuoteForm>) {
   } = data;
 
   try {
+    // If objectKeys is provided, fetch existing quote to append to existing objectKeys
+    let mergedObjectKeys: string[] | undefined;
+    if (objectKeys !== undefined) {
+      const existingQuote = await prisma.quote.findUnique({
+        where: { id },
+        select: { objectKeys: true },
+      });
+      const existingObjectKeys = existingQuote?.objectKeys || [];
+      // Merge arrays and remove duplicates
+      mergedObjectKeys = Array.from(
+        new Set([...existingObjectKeys, ...objectKeys])
+      );
+    }
+
     const updateData: Prisma.QuoteUpdateInput = {
       ...(referenceNumber !== undefined && { referenceNumber }),
       ...(date !== undefined && { date: new Date(date) }),
@@ -50,7 +64,7 @@ export async function updateQuote(id: string, data: Partial<QuoteForm>) {
           ? new Date(approximateSiteDeliveryDate)
           : null,
       }),
-      ...(objectKeys !== undefined && { objectKeys }),
+      ...(mergedObjectKeys !== undefined && { objectKeys: mergedObjectKeys }),
     };
 
     await prisma.quote.update({

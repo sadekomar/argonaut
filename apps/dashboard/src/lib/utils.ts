@@ -1,3 +1,4 @@
+import { ExchangeRateResponse } from "@/app/quotes/_utils/create-quote";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -54,3 +55,25 @@ export const formatCurrency = (value: number, currency: string) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
+// 0: ARGO-Q-2xxx-mm-yyyy
+export function generateQuoteReferenceNumber(
+  serialNumber: number,
+  date: Date | string
+) {
+  // Serial number should start with 2 and have three digits (e.g. 2001, 2002, ..., 2999)
+  const padded = String(serialNumber).padStart(3, "0");
+  const serial = `2${padded}`;
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `ARGO-Q-${serial}-${month}-${year}`;
+}
+export async function getRate(code: string) {
+  const response = await fetch("https://open.er-api.com/v6/latest/EGP").then(
+    (res) => res.json() as Promise<ExchangeRateResponse>
+  );
+  if (response.result === "success") {
+    return response.rates[code];
+  }
+  throw new Error(response["error-type"]);
+}

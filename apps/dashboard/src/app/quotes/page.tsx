@@ -1,116 +1,93 @@
-"use client";
-
 import {
-  GetQuotesResponse,
-  useGetQuotes,
-  useGetQuotesMetadata,
-} from "./_components/use-quotes";
-import { QuotesTable } from "./_components/quotes-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { QuoteForm } from "./_components/quote-form";
-import { generateEmptyMonths } from "@/lib/utils";
-import { AddQuoteModal } from "./_components/add-quote-modal";
-import { Suspense } from "react";
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import QuotesClientPage from "./client-page";
+import { readQuotes, readQuotesMetadata } from "./_utils/read-quotes";
+import { readCompanies } from "../companies/_utils/read-companies";
+import { readPeople } from "../people/_utils/read-people";
+import { CompanyType, PersonType } from "@/lib/enums";
+import { readProjects } from "../projects/_utils/read-projects";
+import { loadSearchParams } from "@/lib/search-params";
+import type { SearchParams } from "nuqs/server";
 
-export default function QuotesAllPage() {
-  const [
-    { data: quotes, isPending },
-    { data: quotesMetadata, isPending: quotesMetadataPending },
-  ] = [useGetQuotes({ perPage: 1000 }), useGetQuotesMetadata()];
+export default async function QuotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await loadSearchParams(searchParams);
+  const queryClient = new QueryClient();
 
-  const chartData = getChartData(quotes);
+  await queryClient.prefetchQuery({
+    queryKey: ["quotes", params],
+    queryFn: () =>
+      readQuotes({
+        page: params.page,
+        perPage: params.perPage,
+        sort: params.sort,
+        referenceNumber: params.referenceNumber,
+        date: params.date ?? undefined,
+        client: params.client,
+        supplier: params.supplier,
+        project: params.project,
+        author: params.author,
+        currency: params.currency,
+        quoteOutcome: params.quoteOutcome,
+        approximateSiteDeliveryDate:
+          params.approximateSiteDeliveryDate ?? undefined,
+      }),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: [
+      "quotesMetadata",
+      {
+        referenceNumber: params.referenceNumber,
+        date: params.date,
+        client: params.client,
+        supplier: params.supplier,
+        project: params.project,
+        author: params.author,
+        currency: params.currency,
+        quoteOutcome: params.quoteOutcome,
+        approximateSiteDeliveryDate: params.approximateSiteDeliveryDate,
+      },
+    ],
+    queryFn: () =>
+      readQuotesMetadata({
+        referenceNumber: params.referenceNumber,
+        date: params.date ?? undefined,
+        client: params.client,
+        supplier: params.supplier,
+        project: params.project,
+        author: params.author,
+        currency: params.currency,
+        quoteOutcome: params.quoteOutcome,
+        approximateSiteDeliveryDate:
+          params.approximateSiteDeliveryDate ?? undefined,
+      }),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: ["projects", null],
+    queryFn: () => readProjects(),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: ["people", { type: [PersonType.AUTHOR] }],
+    queryFn: () => readPeople({ type: [PersonType.AUTHOR] }),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: ["companies", { type: [CompanyType.CLIENT] }],
+    queryFn: () => readCompanies({ type: [CompanyType.CLIENT] }),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: ["companies", { type: [CompanyType.SUPPLIER] }],
+    queryFn: () => readCompanies({ type: [CompanyType.SUPPLIER] }),
+  });
 
   return (
-    <>
-      <main className="flex-1 p-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Quotes</h1>
-          <AddQuoteModal />
-        </div>
-        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Quotes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {quotesMetadataPending ? (
-                <Skeleton className="h-10 w-10" />
-              ) : (
-                <p className="text-4xl font-bold">
-                  {quotesMetadata?.totalQuotes ?? 0}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Won Quotes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {quotesMetadata?.wonQuotes != undefined ? (
-                <p className="text-4xl font-bold">{quotesMetadata.wonQuotes}</p>
-              ) : (
-                <Skeleton className="h-10 w-10" />
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Quotes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {quotesMetadata?.pendingQuotes != undefined ? (
-                <p className="text-4xl font-bold">
-                  {quotesMetadata.pendingQuotes}
-                </p>
-              ) : (
-                <Skeleton className="h-10 w-10" />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid grid-cols-1 gap-6">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Quotes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense>
-                <QuotesTable />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <QuotesClientPage />
+    </HydrationBoundary>
   );
-}
-
-function getChartData(
-  quotes: GetQuotesResponse | undefined
-): { date: string; quotes: number }[] {
-  const allMonths = generateEmptyMonths("2023-06-01", "2025-06-01");
-
-  const chartData = quotes?.data?.reduce(
-    (acc: Record<string, number>, quote: { date: Date | string }) => {
-      const date = new Date(quote.date);
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      const key = `${year}-${month}-01`;
-
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  const formattedChartData: { date: string; quotes: number }[] = allMonths.map(
-    (month) => ({
-      date: month,
-      quotes: chartData?.[month] || 0,
-    })
-  );
-
-  return formattedChartData;
 }

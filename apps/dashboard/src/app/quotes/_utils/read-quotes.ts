@@ -18,11 +18,11 @@ interface ReadQuotesParams {
   approximateSiteDeliveryDate?: string | [string, string];
 }
 
-export const readQuotes = async (params: ReadQuotesParams = {}) => {
+// Helper function to build where clause from filters
+function buildWhereClause(
+  params: Omit<ReadQuotesParams, "page" | "perPage" | "sort">
+): Prisma.QuoteWhereInput {
   const {
-    page = 1,
-    perPage = 10,
-    sort = [{ id: "date", desc: true }],
     referenceNumber,
     date,
     client,
@@ -34,7 +34,6 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
     approximateSiteDeliveryDate,
   } = params;
 
-  // Build where clause from filters
   const where: Prisma.QuoteWhereInput = {};
 
   if (referenceNumber) {
@@ -135,6 +134,15 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
     }
   }
 
+  return where;
+}
+
+export const readQuotes = async (params: ReadQuotesParams = {}) => {
+  const { page, perPage, sort = [{ id: "date", desc: true }] } = params;
+
+  // Build where clause from filters
+  const where = buildWhereClause(params);
+
   // Build orderBy from sorting
   const orderBy: Prisma.QuoteOrderByWithRelationInput[] = sort.map(
     (sortItem) => {
@@ -206,33 +214,47 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
       },
     },
     orderBy: orderBy.length > 0 ? orderBy : [{ createdAt: "desc" }],
-    skip: (page - 1) * perPage,
-    take: perPage,
+    skip: page && perPage ? (page - 1) * perPage : undefined,
+    take: page && perPage ? perPage : undefined,
   });
 
   return {
     data: quotes,
     total,
-    pageCount: Math.ceil(total / perPage),
+    pageCount: page && perPage ? Math.ceil(total / perPage) : undefined,
   };
 };
 
-export const readQuotesMetadata = async () => {
+export const readQuotesMetadata = async (
+  params: Omit<ReadQuotesParams, "page" | "perPage" | "sort"> = {}
+) => {
+  // Build base where clause from filters (excluding quoteOutcome to avoid double filtering)
+  const baseWhere = buildWhereClause(params);
+
+  // For outcome-specific counts, combine base filters with outcome filter
+  // Note: We exclude quoteOutcome from base filters when counting by outcome
+  // to get accurate counts for each outcome category
+  const { quoteOutcome, ...filtersWithoutOutcome } = params;
+  const baseWhereWithoutOutcome = buildWhereClause(filtersWithoutOutcome);
+
   const [totalQuotes, wonQuotes, pendingQuotes, lostQuotes] = await Promise.all(
     [
-      prisma.quote.count(),
+      prisma.quote.count({ where: baseWhere }),
       prisma.quote.count({
         where: {
+          ...baseWhereWithoutOutcome,
           quoteOutcome: "WON",
         },
       }),
       prisma.quote.count({
         where: {
+          ...baseWhereWithoutOutcome,
           quoteOutcome: "PENDING",
         },
       }),
       prisma.quote.count({
         where: {
+          ...baseWhereWithoutOutcome,
           quoteOutcome: "LOST",
         },
       }),

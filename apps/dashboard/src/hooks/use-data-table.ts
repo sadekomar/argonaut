@@ -197,7 +197,14 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       }
       return acc;
     }, {});
-  }, [filterableColumns, queryStateOptions, enableAdvancedFilter]);
+  }, [
+    filterableColumns,
+    queryStateOptions,
+    enableAdvancedFilter,
+    ...filterableColumns.map((col) =>
+      col.meta?.options ? JSON.stringify(col.meta.options) : null
+    ),
+  ]);
 
   const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 

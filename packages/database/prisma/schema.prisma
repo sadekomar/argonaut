@@ -136,6 +136,16 @@ model Quote {
   Rfq                         Rfq?
   FollowUp                    FollowUp[]
   objectKeys                  String[]
+
+  // --- INDEXES ---
+  @@index([authorId])
+  @@index([supplierId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([contactPersonId])
+  @@index([quoteOutcome]) // Vital for dashboard stats (Won vs Lost)
+  @@index([referenceNumber]) // Vital for search
+  @@index([date]) // Vital for sorting/filtering by year/month
 }
 
 model FollowUp {
@@ -149,6 +159,7 @@ model FollowUp {
   updatedAt DateTime @updatedAt
 
   @@index([quoteId])
+  @@index([authorId])
 }
 
 model Rfq {
@@ -177,6 +188,13 @@ model Rfq {
   quote           Quote?    @relation(fields: [quoteId], references: [id])
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  // --- INDEXES ---
+  @@index([authorId])
+  @@index([supplierId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([referenceNumber]) // Search
 }
 
 // is quotation followed up or not
@@ -202,6 +220,11 @@ model Registration {
   notes              String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+
+  // --- INDEXES ---
+  @@index([companyId])
+  @@index([authorId])
+  @@index([registrationStatus]) // For filtering active registrations
 }
 
 // suppliers registered`
@@ -233,6 +256,11 @@ model Person {
   Registration            Registration[]
   FollowUp                FollowUp[]
   companiesResponsibleFor Company[]      @relation("ResponsibleSalesPerson")
+
+  // --- INDEXES ---
+  @@index([companyId])
+  @@index([name]) // For search/autocomplete
+  @@index([email]) // For search
 }
 
 model Company {
@@ -252,6 +280,11 @@ model Company {
   responsibleSalesPerson   Person?        @relation("ResponsibleSalesPerson", fields: [responsibleSalesPersonId], references: [id])
   responsibleSalesPersonId String?
   Registration             Registration[]
+
+  // --- INDEXES ---
+  @@index([responsibleSalesPersonId])
+  @@index([name]) // Vital for company lookups/search
+  @@index([type]) // To quickly separate Clients from Suppliers
 }
 
 // one project could have many quotes and many companies actually
@@ -268,6 +301,10 @@ model Project {
   rfqs      Rfq[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+
+  // --- INDEXES ---
+  @@index([companyId])
+  @@index([name])
 }
 
 // Capacity feature to associate products with quotes.

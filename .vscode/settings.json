@@ -1,4 +1,5 @@
 {
+  "prisma.pinToPrisma6": true,
   "eslint.workingDirectories": [
     {
       "mode": "auto"

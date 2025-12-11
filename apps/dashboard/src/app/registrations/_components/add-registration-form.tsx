@@ -17,12 +17,14 @@ import { Loader2 } from "lucide-react";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { createClient } from "@/app/companies/_utils/create-company";
 import { createAuthor } from "@/app/people/_utils/create-person";
-import { readAuthors, readClients } from "../../quotes/_utils/read-suppliers";
 import { useUploadFiles } from "better-upload/client";
 import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
 import { createRegistration } from "../_utils/create-registration";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { readAllCompanies } from "../_utils/read-companies";
+import { useQueryClient } from "@tanstack/react-query";
+import { useReadCompanies } from "@/app/companies/_components/use-companies";
+import { useReadPeople } from "@/app/people/_components/use-people";
+import { PersonType } from "@/lib/enums";
+import { mapToSelectOptions } from "@/lib/utils";
 
 const registrationStatusEnum = z.enum([
   "PURSUING",
@@ -88,14 +90,13 @@ export function AddRegistrationForm() {
     }
   };
 
-  const { data: companies = [] } = useQuery({
-    queryKey: ["allCompanies"],
-    queryFn: readAllCompanies,
+  const { data: companies } = useReadCompanies();
+  const { data: authors } = useReadPeople({
+    type: [PersonType.AUTHOR],
   });
-  const { data: authors = [] } = useQuery({
-    queryKey: ["authors"],
-    queryFn: readAuthors,
-  });
+
+  const companiesInitialOptions = mapToSelectOptions(companies?.data);
+  const authorsInitialOptions = mapToSelectOptions(authors?.data);
 
   return (
     <Form {...form}>
@@ -113,7 +114,7 @@ export function AddRegistrationForm() {
                   <FormLabel>Company</FormLabel>
                   <FormControl>
                     <CreateNewCombobox
-                      initialOptions={companies}
+                      initialOptions={companiesInitialOptions}
                       createNewFunction={async (value) => {
                         const company = await createClient(value);
                         return company.id;
@@ -164,7 +165,7 @@ export function AddRegistrationForm() {
                   <FormLabel>Author</FormLabel>
                   <FormControl>
                     <CreateNewCombobox
-                      initialOptions={authors}
+                      initialOptions={authorsInitialOptions}
                       createNewFunction={async (value) => {
                         const author = await createAuthor(value);
                         return author.id;

@@ -30,8 +30,11 @@ import {
   useEditFollowUp,
   useDeleteFollowUp,
 } from "./_components/use-follow-ups";
+import { useState } from "react";
+import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
+import { UpdateFollowUpModal } from "./_components/update-follow-up-modal";
 
-interface FollowUp {
+export interface FollowUp {
   id: string;
   quoteId: string;
   quote: {
@@ -64,8 +67,11 @@ const truncateText = (text: string | null, maxLength: number = 50) => {
 };
 
 export function FollowUpsTable() {
-  const editFollowUp = useEditFollowUp();
   const deleteFollowUp = useDeleteFollowUp();
+
+  const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Read URL query state for pagination
   const [page] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -245,19 +251,13 @@ export function FollowUpsTable() {
           const followUp = row.original;
 
           const handleEdit = () => {
-            // TODO: Open edit modal or navigate to edit page
-            // For now, you can implement the edit modal similar to add-follow-up-modal
-            console.log("Edit follow-up:", followUp.id);
+            setSelectedFollowUp(followUp);
+            setIsEditModalOpen(true);
           };
 
           const handleDelete = () => {
-            if (
-              confirm(
-                `Are you sure you want to delete this follow-up for quote ${followUp.quote.referenceNumber}?`
-              )
-            ) {
-              deleteFollowUp.mutate(followUp.id);
-            }
+            setSelectedFollowUp(followUp);
+            setIsDeleteModalOpen(true);
           };
 
           return (
@@ -362,6 +362,26 @@ export function FollowUpsTable() {
       <DataTable table={table} isLoading={isLoading}>
         <DataTableToolbar table={table} />
       </DataTable>
+
+      {selectedFollowUp && (
+        <UpdateFollowUpModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          followUp={selectedFollowUp}
+        />
+      )}
+
+      {selectedFollowUp && (
+        <DeleteConfirmationModal
+          open={isDeleteModalOpen}
+          setIsOpen={setIsDeleteModalOpen}
+          title="Delete Follow-Up"
+          description="Are you sure you want to delete this follow-up? This action cannot be undone."
+          deleteFunction={() =>
+            deleteFollowUp.mutate(selectedFollowUp?.id ?? "")
+          }
+        />
+      )}
     </div>
   );
 }

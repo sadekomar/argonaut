@@ -4,33 +4,132 @@ import { updateQuote } from "../_utils/update-quote";
 import { deleteQuote } from "../_utils/delete-quote";
 import { QuoteForm } from "./quote-form";
 import { createQuote } from "../_utils/create-quote";
+import { toast } from "sonner";
+import { generateQuoteReferenceNumber } from "@/lib/utils";
 
-export type GetQuotesResponse = Awaited<ReturnType<typeof readQuotes>>;
-export type GetQuotesDataResponse = GetQuotesResponse["data"];
+export type ReadQuotesResponse = Awaited<ReturnType<typeof readQuotes>>;
+export type ReadQuotesDataResponse = ReadQuotesResponse["data"];
 
-const toast = {
-  success: (message: string) => console.log(`✅ ${message}`),
-  error: (message: string) => console.error(`❌ ${message}`),
-};
-
-export const useGetQuotes = (params?: Parameters<typeof readQuotes>[0]) => {
+export const useReadQuotes = (params?: Parameters<typeof readQuotes>[0]) => {
   return useQuery({
     queryKey: ["quotes", params],
     queryFn: () => readQuotes(params),
   });
 };
 
-export const useGetQuotesMetadata = () => {
+export const useReadQuotesMetadata = (
+  params?: Parameters<typeof readQuotesMetadata>[0]
+) => {
   return useQuery({
-    queryKey: ["quotesMetadata"],
-    queryFn: readQuotesMetadata,
+    queryKey: ["quotesMetadata-client", params],
+    queryFn: () => readQuotesMetadata(params),
   });
 };
 
-export const useCreateQuote = () => {
+export const useCreateQuote = (params?: Parameters<typeof readQuotes>[0]) => {
+  const queryClient = useQueryClient();
+
+  const queryKey = params
+    ? [
+        "quotes",
+        {
+          ...params,
+          // Include date and approximateSiteDeliveryDate explicitly, using null when undefined
+          // to match the structure from useQueryStates (parseAsString returns null)
+          date: params.date ?? null,
+          approximateSiteDeliveryDate:
+            params.approximateSiteDeliveryDate ?? null,
+        },
+      ]
+    : ["quotes"];
+
   return useMutation({
     mutationFn: (data: QuoteForm) => createQuote(data),
     mutationKey: ["createQuote"],
+    onMutate: async (data) => {
+      try {
+        await queryClient.cancelQueries({ queryKey });
+        const previousQuotes = queryClient.getQueryData(queryKey);
+        const transformedData: ReadQuotesDataResponse[number] = {
+          id: crypto.randomUUID(),
+          serialNumber: 0,
+          referenceNumber:
+            data.referenceNumber ?? generateQuoteReferenceNumber(0, data.date),
+          date: new Date(data.date),
+          currency: data.currency,
+          rate: 0,
+          value: Number(data.value),
+          notes: data.notes ?? null,
+          authorId: data.authorId,
+          supplierId: data.supplierId ?? null,
+          clientId: data.clientId,
+          projectId: data.projectId,
+          contactPersonId: data.contactPersonId,
+          quoteOutcome: data.quoteOutcome ?? "PENDING",
+          approximateSiteDeliveryDate: data.approximateSiteDeliveryDate
+            ? new Date(data.approximateSiteDeliveryDate)
+            : null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          objectKeys: data.objectKeys ?? [],
+          author: {
+            id: data.authorId,
+            name: data.authorName ?? "",
+          },
+          supplier: {
+            id: data.supplierId,
+            name: data.supplierName ?? "",
+          },
+          client: {
+            id: data.clientId,
+            name: data.clientName ?? "",
+          },
+          project: {
+            id: data.projectId,
+            name: data.projectName ?? "",
+          },
+          contactPerson: {
+            id: data.contactPersonId,
+            name: data.contactPersonName ?? "",
+          },
+        };
+
+        queryClient.setQueryData(
+          queryKey,
+          (old: ReadQuotesResponse | undefined) =>
+            old
+              ? {
+                  ...old,
+                  data: [transformedData, ...old.data],
+                  total: old.total + 1,
+                }
+              : { data: [transformedData], total: 1, pageCount: 1 }
+        );
+
+        return { previousQuotes, transformedData };
+      } catch (e) {
+        console.error("error creating quote", e);
+      }
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousQuotes) {
+        queryClient.setQueryData(queryKey, context.previousQuotes);
+      }
+      toast.error("Failed to create quote", {
+        description: error.message || "The quote could not be created.",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
+      toast.success("Quote created successfully", {
+        description: "The quote has been created successfully.",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
+    },
   });
 };
 
@@ -44,7 +143,9 @@ export const useUpdateQuote = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
-      toast.success("Quote updated successfully");
+      toast.success("Quote updated successfully", {
+        description: "The quote has been updated successfully.",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
@@ -52,19 +153,31 @@ export const useUpdateQuote = () => {
   });
 };
 
-export const useDeleteQuote = () => {
+export const useDeleteQuote = (params?: Parameters<typeof readQuotes>[0]) => {
   const queryClient = useQueryClient();
+
+  const queryKey = params
+    ? [
+        "quotes",
+        {
+          ...params,
+          date: params.date ?? null,
+          approximateSiteDeliveryDate:
+            params.approximateSiteDeliveryDate ?? null,
+        },
+      ]
+    : ["quotes"];
 
   return useMutation({
     mutationFn: (id: string) => deleteQuote(id),
     mutationKey: ["deleteQuote"],
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ["quotes"] });
-      const previousQuotes = queryClient.getQueryData(["quotes"]);
+      const previousQuotes = queryClient.getQueryData(queryKey);
 
       queryClient.setQueryData(
-        ["quotes"],
-        (old: GetQuotesResponse | undefined) => {
+        queryKey,
+        (old: ReadQuotesResponse | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -80,13 +193,17 @@ export const useDeleteQuote = () => {
       return { previousQuotes };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
-      toast.success("Quote deleted successfully");
+      toast.success("Quote deleted successfully", {
+        description: "The quote has been deleted successfully.",
+      });
     },
     onError: (error, variables, context) => {
-      queryClient.setQueryData(["quotes"], context?.previousQuotes);
-      toast.error(`Failed to delete quote: ${error.message}`);
+      queryClient.setQueryData(queryKey, context?.previousQuotes);
+      toast.error(`Failed to delete quote: ${error.message}`, {
+        description: "The quote has not been deleted.",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });

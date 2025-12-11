@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { MaskInput } from "@/components/ui/mask-input";
@@ -24,7 +24,6 @@ import { createProject } from "@/app/projects/_utils/create-project";
 import { createPerson } from "@/app/people/_utils/create-person";
 import { useUploadFiles } from "better-upload/client";
 import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCreateQuote, useUpdateQuote } from "./use-quotes";
 import {
   Select,
@@ -38,6 +37,16 @@ import { mapToSelectOptions } from "@/lib/utils";
 import { useReadCompanies } from "@/app/companies/_components/use-companies";
 import { useReadProjects } from "@/app/projects/_components/use-projects";
 import { CompanyType, PersonType } from "@/lib/enums";
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+  useQueryStates,
+} from "nuqs";
+import { Quote } from "./quotes-table";
+import { getSortingStateParser } from "@/lib/parsers";
+import React from "react";
 
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);
@@ -61,6 +70,12 @@ const quoteFormSchema = z.object({
   objectKeys: z
     .array(z.string())
     .min(1, { message: "Related files are required" }),
+  // include names in mutation for optimistic updates
+  authorName: z.string().trim().optional(),
+  supplierName: z.string().trim().optional(),
+  clientName: z.string().trim().optional(),
+  projectName: z.string().trim().optional(),
+  contactPersonName: z.string().trim().optional(),
 });
 
 export type QuoteForm = z.infer<typeof quoteFormSchema>;
@@ -78,11 +93,11 @@ export function QuoteForm({
   onSubmit,
 }: QuoteFormProps) {
   const mode = quoteId ? "edit" : "add";
-  const createQuote = useCreateQuote();
+
+  const createQuote = useGenerateCreateQuote();
   const updateQuote = useUpdateQuote();
 
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
-  const queryClient = useQueryClient();
 
   const form = useForm<QuoteForm>({
     resolver: zodResolver(quoteFormSchema),
@@ -143,12 +158,27 @@ export function QuoteForm({
     try {
       onSubmit(data);
       if (mode === "add") {
-        await createQuote.mutateAsync(data);
+        createQuote.mutate({
+          ...data,
+          authorName: authorsInitialOptions.find(
+            (author) => author.value === data.authorId
+          )?.label,
+          supplierName: suppliersInitialOptions?.find(
+            (supplier) => supplier.value === data.supplierId
+          )?.label,
+          clientName: clientsInitialOptions?.find(
+            (client) => client.value === data.clientId
+          )?.label,
+          projectName: projectsInitialOptions?.find(
+            (project) => project.value === data.projectId
+          )?.label,
+          contactPersonName: contactPersonsInitialOptions?.find(
+            (contactPerson) => contactPerson.value === data.contactPersonId
+          )?.label,
+        });
       } else {
         await updateQuote.mutateAsync({ id: quoteId!, data });
       }
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["quotesMetadata"] });
       uploadControl.reset();
       form.reset();
     } catch (e) {
@@ -465,6 +495,55 @@ export function QuoteForm({
           )}
         />
 
+        <div>
+          <label className="text-sm font-medium text-muted-foreground mb-3 block">
+            Related Files
+          </label>
+          {defaultValues?.objectKeys && defaultValues.objectKeys.length > 0 ? (
+            <div className="space-y-2">
+              {defaultValues?.objectKeys.map((objectKey, index) => (
+                <div
+                  key={objectKey}
+                  className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10 text-primary">
+                      <FileText className="size-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        File {index + 1}
+                      </p>
+                      <p className="text-xs text-muted-foreground text-wrap truncate">
+                        {objectKey}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="flex-shrink-0"
+                  >
+                    <a
+                      href={`/api/upload/${encodeURIComponent(objectKey)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      View
+                    </a>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No files associated with this quote.
+            </p>
+          )}
+        </div>
+
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
@@ -479,4 +558,62 @@ export function QuoteForm({
       </form>
     </Form>
   );
+}
+function useGenerateCreateQuote() {
+  const [pagination] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    perPage: parseAsInteger.withDefault(40),
+  });
+
+  // Read URL query state for sorting
+  const columnIds = React.useMemo(
+    () =>
+      new Set([
+        "referenceNumber",
+        "date",
+        "client",
+        "supplier",
+        "project",
+        "author",
+        "value",
+        "currency",
+        "quoteOutcome",
+        "approximateSiteDeliveryDate",
+      ]),
+    []
+  );
+
+  const [sort] = useQueryState(
+    "sort",
+    getSortingStateParser<Quote>(columnIds).withDefault([])
+  );
+  // Read URL query state for filters
+  const [filters] = useQueryStates({
+    date: parseAsString,
+    referenceNumber: parseAsString.withDefault(""),
+    client: parseAsArrayOf(parseAsString).withDefault([]),
+    supplier: parseAsArrayOf(parseAsString).withDefault([]),
+    project: parseAsArrayOf(parseAsString).withDefault([]),
+    author: parseAsArrayOf(parseAsString).withDefault([]),
+    currency: parseAsArrayOf(parseAsString).withDefault([]),
+    quoteOutcome: parseAsArrayOf(parseAsString).withDefault([]),
+    approximateSiteDeliveryDate: parseAsString,
+  });
+
+  const createQuote = useCreateQuote({
+    page: pagination.page,
+    perPage: pagination.perPage,
+    sort: sort,
+    date: filters.date ?? undefined,
+    referenceNumber: filters.referenceNumber,
+    client: filters.client,
+    supplier: filters.supplier,
+    project: filters.project,
+    author: filters.author,
+    currency: filters.currency,
+    quoteOutcome: filters.quoteOutcome,
+    approximateSiteDeliveryDate:
+      filters.approximateSiteDeliveryDate ?? undefined,
+  });
+  return createQuote;
 }

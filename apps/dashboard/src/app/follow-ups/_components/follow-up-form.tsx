@@ -15,41 +15,61 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import CreateNewCombobox from "@/components/create-new-combobox";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { readQuotes } from "../_utils/read-quotes";
-import { readAuthors } from "../../quotes/_utils/read-suppliers";
 import { createAuthor } from "@/app/people/_utils/create-person";
 import { createFollowUp } from "../_utils/create-follow-up";
+import { useReadPeople } from "@/app/people/_components/use-people";
+import { mapToSelectOptions } from "@/lib/utils";
+import { PersonType } from "@/lib/enums";
+import { useReadQuotes } from "@/app/quotes/_components/use-quotes";
+import { useCreateFollowUp, useUpdateFollowUp } from "./use-follow-ups";
 
-const addFollowUpSchema = z.object({
+const followUpSchema = z.object({
   quoteId: z.string().trim().min(1, { message: "Quote is required" }),
   authorId: z.string().trim().min(1, { message: "Author is required" }),
   notes: z.string().trim().optional(),
 });
 
-export type AddFollowUpForm = z.infer<typeof addFollowUpSchema>;
+export type FollowUpForm = z.infer<typeof followUpSchema>;
 
-export function AddFollowUpForm() {
-  const queryClient = useQueryClient();
-
-  const form = useForm<AddFollowUpForm>({
-    resolver: zodResolver(addFollowUpSchema),
-    defaultValues: {
+export function FollowUpForm({
+  followUpId,
+  defaultValues,
+  onSubmit,
+}: {
+  followUpId?: string;
+  defaultValues?: FollowUpForm;
+  onSubmit?: (data: FollowUpForm) => void;
+}) {
+  const mode = followUpId ? "edit" : "add";
+  const form = useForm<FollowUpForm>({
+    resolver: zodResolver(followUpSchema),
+    defaultValues: defaultValues ?? {
       quoteId: "",
       authorId: "",
       notes: "",
     },
   });
 
-  const submitFollowUp = async (data: AddFollowUpForm) => {
+  const createFollowUp = useCreateFollowUp();
+  const updateFollowUp = useUpdateFollowUp();
+
+  const submitFollowUp = async (data: FollowUpForm) => {
     try {
-      await createFollowUp({
-        quoteId: data.quoteId,
-        authorId: data.authorId,
-        notes: data.notes || undefined,
-      });
-      queryClient.invalidateQueries({ queryKey: ["followUps"] });
-      queryClient.invalidateQueries({ queryKey: ["followUpsMetadata"] });
+      if (mode === "add") {
+        createFollowUp.mutate({
+          quoteId: data.quoteId,
+          authorId: data.authorId,
+          notes: data.notes || undefined,
+        });
+      } else {
+        updateFollowUp.mutate({
+          id: followUpId!,
+          quoteId: data.quoteId,
+          authorId: data.authorId,
+          notes: data.notes || undefined,
+        });
+      }
+      onSubmit?.(data);
       form.reset();
     } catch (e) {
       console.error("Error submitting follow-up:", e);
@@ -59,15 +79,18 @@ export function AddFollowUpForm() {
     }
   };
 
-  const { data: quotes = [] } = useQuery({
-    queryKey: ["quotes"],
-    queryFn: readQuotes,
+  const { data: quotes } = useReadQuotes();
+  const { data: authors } = useReadPeople({
+    type: [PersonType.AUTHOR],
   });
 
-  const { data: authors = [] } = useQuery({
-    queryKey: ["authors"],
-    queryFn: readAuthors,
-  });
+  const quotesInitialOptions = mapToSelectOptions(
+    quotes?.data?.map((quote) => ({
+      ...quote,
+      name: quote.referenceNumber,
+    }))
+  );
+  const authorsInitialOptions = mapToSelectOptions(authors?.data);
 
   return (
     <Form {...form}>
@@ -82,10 +105,11 @@ export function AddFollowUpForm() {
                   <FormLabel>Quote</FormLabel>
                   <FormControl>
                     <CreateNewCombobox
-                      initialOptions={quotes}
+                      disableCreateNew={true}
+                      initialOptions={quotesInitialOptions}
                       createNewFunction={async () => {
                         // Quotes should already exist, so we don't create new ones
-                        throw new Error("Quote must already exist");
+                        console.log("cannot create new quote from here");
                       }}
                       label="quote"
                       value={field.value ?? ""}
@@ -104,7 +128,7 @@ export function AddFollowUpForm() {
                   <FormLabel>Author</FormLabel>
                   <FormControl>
                     <CreateNewCombobox
-                      initialOptions={authors}
+                      initialOptions={authorsInitialOptions}
                       createNewFunction={async (value) => {
                         const author = await createAuthor(value);
                         return author.id;

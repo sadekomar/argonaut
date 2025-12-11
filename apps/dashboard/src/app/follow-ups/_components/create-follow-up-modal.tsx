@@ -8,13 +8,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AddFollowUpForm } from "./add-follow-up-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { FollowUpForm } from "./follow-up-form";
+import { useState } from "react";
 
-export function AddFollowUpModal() {
+export function CreateFollowUpModal({
+  defaultValues,
+  onOpenChange,
+  open,
+}: {
+  defaultValues?: FollowUpForm;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+}) {
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -28,9 +37,13 @@ export function AddFollowUpModal() {
             Create a new follow-up for a quote.
           </DialogDescription>
         </DialogHeader>
-        <AddFollowUpForm />
+        <FollowUpForm
+          defaultValues={defaultValues}
+          onSubmit={(data) => {
+            onOpenChange(false);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
 }
-

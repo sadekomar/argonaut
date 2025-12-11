@@ -19,6 +19,7 @@ const CreateNewCombobox = ({
   label,
   value,
   onValueChange,
+  disableCreateNew = false,
 }: {
   initialOptions: { value: string; label: string }[];
   createNewFunction?: ({
@@ -33,6 +34,7 @@ const CreateNewCombobox = ({
   label?: string;
   value?: string;
   onValueChange?: (value: string) => void;
+  disableCreateNew?: boolean;
 }) => {
   const [data, setData] = useState(initialOptions);
 
@@ -68,7 +70,9 @@ const CreateNewCombobox = ({
       <ComboboxContent>
         <ComboboxInput />
         <ComboboxEmpty>
-          <ComboboxCreateNew onCreateNew={handleCreateNew} />
+          {!disableCreateNew && (
+            <ComboboxCreateNew onCreateNew={handleCreateNew} />
+          )}
         </ComboboxEmpty>
         <ComboboxList>
           <ComboboxGroup>
