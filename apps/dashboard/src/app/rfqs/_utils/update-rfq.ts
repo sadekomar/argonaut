@@ -3,23 +3,10 @@
 import { Prisma, prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import type { Currency } from "@repo/db";
+import { RfqForm } from "../_components/rfq-form";
 
-export interface UpdateRfqForm {
-  id: string;
-  date?: string;
-  currency?: string;
-  value?: string;
-  notes?: string;
-  authorId?: string;
-  supplierId?: string;
-  clientId?: string;
-  projectId?: string;
-  rfqReceivedAt?: string;
-}
-
-export async function updateRfq(data: UpdateRfqForm) {
+export async function updateRfq(id: string, data: Partial<RfqForm>) {
   const {
-    id,
     value,
     date,
     currency,

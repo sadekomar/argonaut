@@ -1,6 +1,6 @@
 "use client";
 
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
@@ -21,11 +21,14 @@ import {
   parseAsInteger,
   parseAsString,
   useQueryState,
+  useQueryStates,
 } from "nuqs";
 import * as React from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,10 +43,11 @@ import { useDataTable } from "@/hooks/use-data-table";
 import { getSortingStateParser } from "@/lib/parsers";
 import { readRegistrations } from "./_utils/read-registrations";
 import {
-  useEditRegistration,
+  useUpdateRegistration,
   useDeleteRegistration,
 } from "./_components/use-registrations";
 import { UpdateRegistrationModal } from "./_components/update-registration-modal";
+import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 
 type RegistrationStatus =
   | "PURSUING"
@@ -139,15 +143,17 @@ const getStatusBadge = (status: RegistrationStatus) => {
 };
 
 export function RegistrationsTable() {
-  const editRegistration = useEditRegistration();
   const deleteRegistration = useDeleteRegistration();
-  const [editingRegistrationId, setEditingRegistrationId] = React.useState<
-    string | null
-  >(null);
 
-  // Read URL query state for pagination
-  const [page] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [perPage] = useQueryState("perPage", parseAsInteger.withDefault(40));
+  const [selectedRegistration, setSelectedRegistration] =
+    useState<Registration>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [pagination] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    perPage: parseAsInteger.withDefault(40),
+  });
 
   // Read URL query state for sorting
   const columnIds = React.useMemo(
@@ -156,9 +162,7 @@ export function RegistrationsTable() {
         "company",
         "registrationStatus",
         "author",
-        "registrationFile",
         "createdAt",
-        "updatedAt",
       ]),
     []
   );
@@ -170,370 +174,279 @@ export function RegistrationsTable() {
   );
 
   // Read URL query state for filters
-  const [company] = useQueryState("company", parseAsString.withDefault(""));
-  const [registrationStatus] = useQueryState(
-    "registrationStatus",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
-  const [author] = useQueryState("author", parseAsString.withDefault(""));
-  const [createdAt] = useQueryState("createdAt", parseAsString);
+  const [filters] = useQueryStates({
+    company: parseAsString.withDefault(""),
+    registrationStatus: parseAsArrayOf(parseAsString).withDefault([]),
+    author: parseAsString.withDefault(""),
+  });
 
   // Fetch registrations with server-side filtering, sorting, and pagination
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "registrations",
-      page,
-      perPage,
-      sort,
-      company,
-      registrationStatus,
-      author,
-      createdAt,
-    ],
+    queryKey: ["registrations", { ...pagination, sort, ...filters }],
     queryFn: () =>
       readRegistrations({
-        page,
-        perPage,
+        page: pagination.page,
+        perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
-        company: company || undefined,
+        company: filters.company || undefined,
         registrationStatus:
-          registrationStatus.length > 0 ? registrationStatus : undefined,
-        author: author || undefined,
-        createdAt: createdAt || undefined,
+          filters.registrationStatus.length > 0
+            ? filters.registrationStatus
+            : undefined,
+        author: filters.author || undefined,
       }),
   });
 
   const registrations = data?.data ?? [];
   const pageCount = data?.pageCount ?? 1;
 
-  const columns = React.useMemo<ColumnDef<Registration>[]>(
-    () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        size: 32,
-        enableSorting: false,
-        enableHiding: false,
-      },
-      {
-        id: "company",
-        accessorFn: (row) => row.company.name,
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Company" />
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <Building2 className="size-4 text-muted-foreground" />
-            {row.original.company.name}
-          </div>
-        ),
-        meta: {
-          label: "Company",
-          placeholder: "Search companies...",
-          variant: "text",
-          icon: Building2,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "registrationStatus",
-        accessorKey: "registrationStatus",
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Status" />
-        ),
-        cell: ({ cell }) => {
-          const status = cell.getValue<Registration["registrationStatus"]>();
-          return getStatusBadge(status);
-        },
-        meta: {
-          label: "Status",
-          variant: "multiSelect",
-          options: [
-            { label: "Pursuing", value: "PURSUING", icon: Clock },
-            {
-              label: "Requirements Collected",
-              value: "REQUIREMENTS_COLLECTED",
-              icon: FileCheck,
-            },
-            { label: "Docs Sent", value: "DOCS_SENT", icon: Send },
-            {
-              label: "Under Review",
-              value: "UNDER_REVIEW",
-              icon: AlertCircle,
-            },
-            {
-              label: "Pending Confirmation",
-              value: "PENDING_CONFIRMATION",
-              icon: Clock,
-            },
-            { label: "Verified", value: "VERIFIED", icon: CheckCircle },
-            { label: "On Hold", value: "ON_HOLD", icon: Pause },
-            { label: "Declined", value: "DECLINED", icon: XCircle },
-          ],
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "author",
-        accessorFn: (row) => row.author.name,
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Author" />
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <User className="size-4 text-muted-foreground" />
-            {row.original.author.name}
-          </div>
-        ),
-        meta: {
-          label: "Author",
-          placeholder: "Search authors...",
-          variant: "text",
-          icon: User,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "registrationFile",
-        accessorKey: "registrationFile",
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Registration File" />
-        ),
-        cell: ({ cell }) => {
-          const file = cell.getValue<Registration["registrationFile"]>();
-          if (!file) {
-            return <span className="text-muted-foreground">N/A</span>;
+  const columnHelper = createColumnHelper<Registration>();
+  const columns = [
+    columnHelper.display({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
           }
-          return (
-            <div className="flex items-center gap-1.5">
-              <FileText className="size-4 text-muted-foreground" />
-              <a
-                href={`/api/upload/${file}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      size: 32,
+      enableSorting: false,
+      enableHiding: false,
+    }),
+    columnHelper.accessor((row) => row.company.name, {
+      id: "company",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Company" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <Building2 className="size-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.company.name}</span>
+        </div>
+      ),
+      meta: {
+        label: "Company",
+        placeholder: "Search companies...",
+        variant: "text",
+        icon: Building2,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("registrationStatus", {
+      id: "registrationStatus",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Status" />
+      ),
+      cell: ({ cell }) => {
+        const status = cell.getValue<Registration["registrationStatus"]>();
+        return getStatusBadge(status);
+      },
+      meta: {
+        label: "Status",
+        variant: "multiSelect",
+        options: [
+          { label: "Pursuing", value: "PURSUING", icon: Clock },
+          {
+            label: "Requirements Collected",
+            value: "REQUIREMENTS_COLLECTED",
+            icon: FileCheck,
+          },
+          { label: "Docs Sent", value: "DOCS_SENT", icon: Send },
+          {
+            label: "Under Review",
+            value: "UNDER_REVIEW",
+            icon: AlertCircle,
+          },
+          {
+            label: "Pending Confirmation",
+            value: "PENDING_CONFIRMATION",
+            icon: Clock,
+          },
+          { label: "Verified", value: "VERIFIED", icon: CheckCircle },
+          { label: "On Hold", value: "ON_HOLD", icon: Pause },
+          { label: "Declined", value: "DECLINED", icon: XCircle },
+        ],
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor((row) => row.author.name, {
+      id: "author",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Author" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <User className="size-4 text-muted-foreground" />
+          {row.original.author.name}
+        </div>
+      ),
+      meta: {
+        label: "Author",
+        placeholder: "Search authors...",
+        variant: "text",
+        icon: User,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("registrationFile", {
+      id: "registrationFile",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Registration File" />
+      ),
+      cell: ({ cell }) => {
+        const file = cell.getValue<Registration["registrationFile"]>();
+        if (!file) {
+          return <span className="text-muted-foreground">N/A</span>;
+        }
+        return (
+          <div className="flex items-center gap-1.5">
+            <FileText className="size-4 text-muted-foreground" />
+            <a
+              href={`/api/upload/${file}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              View File
+            </a>
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor("notes", {
+      id: "notes",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Notes" />
+      ),
+      cell: ({ cell }) => {
+        const notes = cell.getValue<Registration["notes"]>();
+        if (!notes) {
+          return <span className="text-muted-foreground">N/A</span>;
+        }
+        return (
+          <div className="max-w-[200px] truncate" title={notes}>
+            {notes}
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor("createdAt", {
+      id: "createdAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Created" />
+      ),
+      cell: ({ cell }) => {
+        const date = cell.getValue<Registration["createdAt"]>();
+        return (
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-4 text-muted-foreground" />
+            {formatDate(date)}
+          </div>
+        );
+      },
+      meta: {
+        label: "Created At",
+        variant: "date",
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: "actions",
+      cell: function Cell({ row }) {
+        const registration = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedRegistration(registration);
+                  setIsEditModalOpen(true);
+                }}
               >
-                View File
-              </a>
-            </div>
-          );
-        },
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setSelectedRegistration(registration);
+                  setIsDeleteModalOpen(true);
+                }}
+                disabled={deleteRegistration.isPending}
+              >
+                {deleteRegistration.isPending ? "Deleting..." : "Delete"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
-      {
-        id: "notes",
-        accessorKey: "notes",
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Notes" />
-        ),
-        cell: ({ cell }) => {
-          const notes = cell.getValue<Registration["notes"]>();
-          if (!notes) {
-            return <span className="text-muted-foreground">N/A</span>;
-          }
-          return (
-            <div className="max-w-[200px] truncate" title={notes}>
-              {notes}
-            </div>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        accessorKey: "createdAt",
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Created" />
-        ),
-        cell: ({ cell }) => {
-          const date = cell.getValue<Registration["createdAt"]>();
-          return (
-            <div className="flex items-center gap-1.5">
-              <Calendar className="size-4 text-muted-foreground" />
-              {formatDate(date)}
-            </div>
-          );
-        },
-        meta: {
-          label: "Created Date",
-          variant: "date",
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "updatedAt",
-        accessorKey: "updatedAt",
-        header: ({ column }: { column: Column<Registration, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Updated" />
-        ),
-        cell: ({ cell }) => {
-          const date = cell.getValue<Registration["updatedAt"]>();
-          return (
-            <div className="flex items-center gap-1.5">
-              <Calendar className="size-4 text-muted-foreground" />
-              {formatDate(date)}
-            </div>
-          );
-        },
-      },
-      {
-        id: "actions",
-        cell: function Cell({ row }) {
-          const registration = row.original;
-
-          const handleEdit = () => {
-            setEditingRegistrationId(registration.id);
-          };
-
-          const handleDelete = () => {
-            if (
-              confirm(
-                `Are you sure you want to delete registration for ${registration.company.name}?`
-              )
-            ) {
-              deleteRegistration.mutate(registration.id);
-            }
-          };
-
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleteRegistration.isPending}
-                >
-                  {deleteRegistration.isPending ? "Deleting..." : "Delete"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-        size: 32,
-      },
-    ],
-    [deleteRegistration]
-  );
+      size: 32,
+    }),
+  ];
 
   const { table } = useDataTable({
-    data: registrations as Registration[],
+    data: registrations,
     columns,
     pageCount,
     initialState: {
-      sorting: [{ id: "createdAt", desc: true }],
+      pagination: {
+        pageIndex: pagination.page - 1, // page is 1-based, pageIndex is 0-based
+        pageSize: pagination.perPage,
+      },
+      sorting: sort,
+      columnVisibility: {
+        select: false,
+      },
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
 
-  // Sync URL query state filters to table's column filters
-  const processFilterValue = React.useCallback(
-    (value: string | string[] | null | undefined): string[] | undefined => {
-      if (value === null || value === undefined) return undefined;
-      if (Array.isArray(value)) return value;
-      if (typeof value === "string" && /[^a-zA-Z0-9]/.test(value)) {
-        return value.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-      }
-      return [value];
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    const columnFilters: Array<{ id: string; value: string | string[] }> = [];
-
-    const companyValue = processFilterValue(company || null);
-    if (companyValue) {
-      columnFilters.push({ id: "company", value: companyValue });
-    }
-
-    if (registrationStatus.length > 0) {
-      columnFilters.push({
-        id: "registrationStatus",
-        value: registrationStatus,
-      });
-    }
-
-    const authorValue = processFilterValue(author || null);
-    if (authorValue) {
-      columnFilters.push({ id: "author", value: authorValue });
-    }
-
-    const createdAtValue = processFilterValue(createdAt || null);
-    if (createdAtValue) {
-      columnFilters.push({ id: "createdAt", value: createdAtValue });
-    }
-
-    // Only update if filters have actually changed to avoid infinite loops
-    const currentFilters = table.getState().columnFilters;
-    const currentFiltersMap = new Map(
-      currentFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-    const newFiltersMap = new Map(
-      columnFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-
-    // Check if filters have changed
-    const filtersChanged =
-      currentFilters.length !== columnFilters.length ||
-      Array.from(newFiltersMap.entries()).some(
-        ([id, value]) => currentFiltersMap.get(id) !== value
-      ) ||
-      Array.from(currentFiltersMap.keys()).some((id) => !newFiltersMap.has(id));
-
-    if (filtersChanged) {
-      table.setColumnFilters(columnFilters);
-    }
-  }, [
-    company,
-    registrationStatus,
-    author,
-    createdAt,
-    processFilterValue,
-    table,
-  ]);
-
   return (
-    <>
-      <div className="data-table-container">
-        <DataTable table={table} isLoading={isLoading}>
-          <DataTableToolbar table={table} />
-        </DataTable>
-      </div>
-      {editingRegistrationId && (
+    <div className="data-table-container">
+      <DataTable table={table} isLoading={isLoading}>
+        <DataTableToolbar table={table}>
+          <DataTableSortList table={table} />
+        </DataTableToolbar>
+      </DataTable>
+
+      {selectedRegistration && (
         <UpdateRegistrationModal
-          open={!!editingRegistrationId}
-          onOpenChange={(open) => {
-            if (!open) {
-              setEditingRegistrationId(null);
-            }
-          }}
-          registrationId={editingRegistrationId}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          registration={selectedRegistration}
         />
       )}
-    </>
+
+      {selectedRegistration && (
+        <DeleteConfirmationModal
+          open={isDeleteModalOpen}
+          setIsOpen={setIsDeleteModalOpen}
+          title="Delete Registration"
+          description={`Are you sure you want to delete the registration for ${selectedRegistration.company.name}? This action cannot be undone.`}
+          deleteFunction={() =>
+            deleteRegistration.mutate(selectedRegistration?.id ?? "")
+          }
+        />
+      )}
+    </div>
   );
 }

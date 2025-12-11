@@ -12,3 +12,12 @@ const PersonType = {
 } as const;
 
 export { PersonType, CompanyType };
+
+export enum Currency {
+  EGP = "EGP",
+  USD = "USD",
+  EUR = "EUR",
+  GBP = "GBP",
+  SAR = "SAR",
+  AED = "AED",
+}

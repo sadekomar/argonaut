@@ -16,6 +16,7 @@ interface ReadQuotesParams {
   currency?: string[];
   quoteOutcome?: string[];
   approximateSiteDeliveryDate?: string | [string, string];
+  rfq?: null | string;
 }
 
 // Helper function to build where clause from filters
@@ -32,6 +33,7 @@ function buildWhereClause(
     currency,
     quoteOutcome,
     approximateSiteDeliveryDate,
+    rfq,
   } = params;
 
   const where: Prisma.QuoteWhereInput = {};
@@ -132,6 +134,13 @@ function buildWhereClause(
         lte: new Date(Number(approximateSiteDeliveryDate[1])),
       };
     }
+  }
+
+  // Filter by RFQ association
+  // If rfq is null, fetch quotes that have no associated RFQ
+  // If rfq is undefined, fetch all quotes (no filter)
+  if (rfq === null) {
+    where.Rfq = null;
   }
 
   return where;

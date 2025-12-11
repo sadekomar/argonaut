@@ -2,6 +2,7 @@
 
 import { Currency, Prisma, prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
+import { RfqForm } from "../_components/rfq-form";
 
 // ExchangeRate-API Successful Response Type
 export type ExchangeRateSuccessResponse = {
@@ -29,19 +30,9 @@ export type ExchangeRateResponse =
   | ExchangeRateSuccessResponse
   | ExchangeRateErrorResponse;
 
-export interface CreateRfqForm {
-  value: string;
-  date: string;
-  currency: string;
-  notes: string;
-  authorId: string;
-  clientId: string;
-  projectId: string;
-  supplierId: string;
-}
-
-export async function createRfq(data: CreateRfqForm) {
+export async function createRfq(data: RfqForm) {
   const {
+    quoteId,
     value,
     date,
     currency,
@@ -51,6 +42,8 @@ export async function createRfq(data: CreateRfqForm) {
     projectId,
     supplierId,
   } = data;
+
+  console.log("creating rfq");
 
   // ARGO-RFQ-1xxx-mm-yyyy
   function generateRfqReferenceNumber(
@@ -83,6 +76,7 @@ export async function createRfq(data: CreateRfqForm) {
   try {
     await prisma.rfq.create({
       data: {
+        quoteId: quoteId,
         referenceNumber: referenceNumber,
         value: Number(value),
         date: new Date(date),
@@ -99,6 +93,7 @@ export async function createRfq(data: CreateRfqForm) {
     revalidatePath("/");
     return { success: true };
   } catch (e) {
+    console.error("error creating rfq", e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       // Handle specific Prisma errors here
       if (e.code === "P2002") {

@@ -6,6 +6,7 @@ import { readRfqsMetadata } from "./_utils/read-rfqs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
+import { CreateRfqModal } from "./_components/create-rfq-modal";
 
 export default function RfqsPage() {
   const { data: metadata, isLoading: metadataLoading } = useQuery({
@@ -15,6 +16,10 @@ export default function RfqsPage() {
 
   return (
     <div className="container mx-auto py-10">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">RFQs</h1>
+        <CreateRfqModal />
+      </div>
       <h1 className="mb-6 text-2xl font-bold">All RFQs</h1>
 
       <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -74,17 +79,18 @@ export default function RfqsPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>RFQs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Suspense>
-            <RfqsTable />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Quotes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Suspense>
+              <RfqsTable />
+            </Suspense>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

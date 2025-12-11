@@ -46,7 +46,7 @@ export function CompanyForm({
   onSubmit,
 }: {
   defaultValues: CreateCompanyForm;
-  companyId: string;
+  companyId?: string;
   onSubmit: () => void;
 }) {
   const mode = companyId ? "edit" : "create";
@@ -55,10 +55,11 @@ export function CompanyForm({
 
   const form = useForm<CreateCompanyForm>({
     resolver: zodResolver(createCompanySchema),
-    defaultValues: {
+    defaultValues: defaultValues ?? {
       name: "",
       email: "",
       phone: "",
+      type: "CLIENT",
     },
   });
 
@@ -67,10 +68,15 @@ export function CompanyForm({
       if (mode === "create") {
         await createCompany(data);
       } else {
-        await updateCompany({ id: companyId, ...data });
+        await updateCompany({ id: companyId!, ...data });
       }
+      onSubmit();
+      form.reset();
     } catch (error) {
       console.error("Error submitting company:", error);
+      form.setError("root", {
+        message: "Failed to submit. Please try again.",
+      });
     }
   };
 
@@ -101,7 +107,12 @@ export function CompanyForm({
                   <FormControl>
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      {...field}
+                      value={field.value}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value as CreateCompanyForm["type"]
+                        )
+                      }
                     >
                       <option value="CLIENT">Client</option>
                       <option value="SUPPLIER">Supplier</option>

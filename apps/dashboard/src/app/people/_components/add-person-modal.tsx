@@ -8,27 +8,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AddPersonForm } from "./add-person-form";
+import { PersonForm } from "./person-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 export function AddPersonModal() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Add Person
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Person</DialogTitle>
           <DialogDescription>
             Create a new person in the system.
           </DialogDescription>
         </DialogHeader>
-        <AddPersonForm />
+        <PersonForm
+          defaultValues={{
+            name: "",
+            email: "",
+            phone: "",
+            companyId: "",
+            type: "INTERNAL",
+          }}
+          personId=""
+          onSubmit={() => {
+            setOpen(false);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

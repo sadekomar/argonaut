@@ -1,13 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { readRfq, readRfqs, readRfqsMetadata } from "../_utils/read-rfqs";
-import { createRfq, CreateRfqForm } from "../_utils/create-rfq";
+import { createRfq } from "../_utils/create-rfq";
 import { deleteRfq } from "../_utils/delete-rfq";
-import { updateRfq, UpdateRfqForm } from "../_utils/update-rfq";
+import { updateRfq } from "../_utils/update-rfq";
+import { RfqForm } from "./rfq-form";
+import { toast } from "sonner";
 
-// Utility functions
-function generateTemporaryId(): string {
-  return `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
+type Currency = "EGP" | "USD" | "EUR" | "GBP" | "SAR" | "AED";
 
 function handleAbort<T extends (...args: any[]) => any>(
   fn: T
@@ -16,14 +15,6 @@ function handleAbort<T extends (...args: any[]) => any>(
     return fn(...args);
   };
 }
-
-// Simple toast replacement
-const toast = {
-  success: (message: string) => console.log(`✅ ${message}`),
-  error: (message: string) => console.error(`❌ ${message}`),
-};
-
-type Currency = "EGP" | "USD" | "EUR" | "GBP" | "SAR" | "AED";
 
 export interface Rfq {
   id: string;
@@ -56,6 +47,10 @@ export interface Rfq {
   };
   rfqReceivedAt: Date | string | null;
   quoteId: string | null;
+  quote: {
+    id: string;
+    referenceNumber: string;
+  } | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -95,12 +90,12 @@ export const useRevalidateRfqs = () => {
   };
 };
 
-export const useAddRfq = () => {
+export const useCreateRfq = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateRfqForm) => createRfq(data),
-    mutationKey: ["addRfq"],
+    mutationFn: (data: RfqForm) => createRfq(data),
+    mutationKey: ["createRfq"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rfqs"] });
       queryClient.invalidateQueries({ queryKey: ["rfqsMetadata"] });
@@ -112,108 +107,20 @@ export const useAddRfq = () => {
   });
 };
 
-export const useEditRfq = () => {
+export const useUpdateRfq = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateRfqForm) => updateRfq(data),
-    mutationKey: ["editRfq"],
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ["rfqs"] });
-      await queryClient.cancelQueries({ queryKey: ["rfq", data.id] });
-      const previousRfqs = queryClient.getQueryData(["rfqs"]);
-      const previousRfq = queryClient.getQueryData(["rfq", data.id]);
-
-      // Optimistically update the RFQ in the list
-      queryClient.setQueryData(["rfqs"], (old: GetRfqsResponse | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          data: old.data.map((rfq) => {
-            if (rfq.id === data.id) {
-              return {
-                ...rfq,
-                ...(data.date && { date: new Date(data.date) }),
-                ...(data.currency && { currency: data.currency as Currency }),
-                ...(data.value && { value: Number(data.value) }),
-                ...(data.notes !== undefined && { notes: data.notes || null }),
-                ...(data.authorId && {
-                  authorId: data.authorId,
-                  author: { ...rfq.author, id: data.authorId },
-                }),
-                ...(data.supplierId && {
-                  supplierId: data.supplierId,
-                  supplier: { ...rfq.supplier, id: data.supplierId },
-                }),
-                ...(data.clientId && {
-                  clientId: data.clientId,
-                  client: { ...rfq.client, id: data.clientId },
-                }),
-                ...(data.projectId && {
-                  projectId: data.projectId,
-                  project: { ...rfq.project, id: data.projectId },
-                }),
-                ...(data.rfqReceivedAt !== undefined && {
-                  rfqReceivedAt: data.rfqReceivedAt
-                    ? new Date(data.rfqReceivedAt)
-                    : null,
-                }),
-                updatedAt: new Date(),
-              };
-            }
-            return rfq;
-          }),
-        };
-      });
-
-      // Optimistically update the single RFQ
-      queryClient.setQueryData(["rfq", data.id], (old: Rfq | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          ...(data.date && { date: new Date(data.date) }),
-          ...(data.currency && { currency: data.currency as Currency }),
-          ...(data.value && { value: Number(data.value) }),
-          ...(data.notes !== undefined && { notes: data.notes || null }),
-          ...(data.authorId && {
-            authorId: data.authorId,
-            author: { ...old.author, id: data.authorId },
-          }),
-          ...(data.supplierId && {
-            supplierId: data.supplierId,
-            supplier: { ...old.supplier, id: data.supplierId },
-          }),
-          ...(data.clientId && {
-            clientId: data.clientId,
-            client: { ...old.client, id: data.clientId },
-          }),
-          ...(data.projectId && {
-            projectId: data.projectId,
-            project: { ...old.project, id: data.projectId },
-          }),
-          ...(data.rfqReceivedAt !== undefined && {
-            rfqReceivedAt: data.rfqReceivedAt
-              ? new Date(data.rfqReceivedAt)
-              : null,
-          }),
-          updatedAt: new Date(),
-        };
-      });
-
-      return { previousRfqs, previousRfq };
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<RfqForm> }) =>
+      updateRfq(id, data),
+    mutationKey: ["updateRfq"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rfqs"] });
       queryClient.invalidateQueries({ queryKey: ["rfqsMetadata"] });
       toast.success("RFQ updated successfully");
     },
-    onError: (error, variables, context) => {
-      queryClient.setQueryData(["rfqs"], context?.previousRfqs);
-      queryClient.setQueryData(["rfq", variables.id], context?.previousRfq);
+    onError: (error) => {
       toast.error(`Failed to update RFQ: ${error.message}`);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["rfqs"] });
     },
   });
 };

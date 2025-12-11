@@ -73,7 +73,6 @@ export default function QuotesClientPage() {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Quotes</h1>
           <AddQuoteModal />
-          <TestingButton />
         </div>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card>

@@ -4,6 +4,7 @@ import { createPerson } from "@/app/people/_utils/create-person";
 import { useReadProjects } from "@/app/projects/_components/use-projects";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { mapToSelectOptions } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldGroup } from "@/components/ui/field";
 import {
   Form,
@@ -22,43 +23,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CompanyType, Currency, PersonType } from "@repo/db";
 import { useState } from "react";
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { createCompany } from "@/app/companies/_utils/create-company";
 import { createProject } from "@/app/projects/_utils/create-project";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { CompanyType, Currency, PersonType } from "@/lib/enums";
+import { useReadQuotes } from "@/app/quotes/_components/use-quotes";
+import { useCreateRfq, useUpdateRfq } from "./use-rfqs";
 
 const rfqFormSchema = z.object({
-  referenceNumber: z.string(),
-  date: z.string(),
+  referenceNumber: z.string().trim().optional(),
+  quoteId: z.string().trim().min(1, { message: "Quote is required" }),
+  date: z.string().trim().min(1, { message: "Date is required" }),
   currency: z.enum(Currency),
-  value: z.string(),
-  notes: z.string(),
-  authorId: z.string(),
-  supplierId: z.string(),
-  clientId: z.string(),
-  projectId: z.string(),
-  rfqReceivedAt: z.string(),
-  quoteId: z.string(),
+  authorId: z.string().trim().min(1, { message: "Author is required" }),
+  supplierId: z.string().trim().min(1, { message: "Supplier is required" }),
+  clientId: z.string().trim().min(1, { message: "Client is required" }),
+  projectId: z.string().trim().min(1, { message: "Project is required" }),
+  notes: z.string().trim().optional(),
+  value: z.string().optional(),
+  rfqReceivedAt: z.string().optional(),
 });
 
-type rfqFormInput = z.infer<typeof rfqFormSchema>;
+export type RfqForm = z.infer<typeof rfqFormSchema>;
 
-function RfqForm({
+export function RfqForm({
   rfqId,
   defaultValues,
   onSubmit,
 }: {
-  rfqId: string;
-  defaultValues: rfqFormInput;
-  onSubmit: () => void;
+  rfqId?: string;
+  defaultValues?: RfqForm & { quoteReferenceNumber?: string };
+  onSubmit: (data: RfqForm) => void;
 }) {
   const mode = rfqId ? "edit" : "add";
 
-  const [currentCurrency, setCurrentCurrency] = useState("EGP");
+  const createRfq = useCreateRfq();
+  const updateRfq = useUpdateRfq();
+
+  const [currentCurrency, setCurrentCurrency] = useState<Currency>(
+    Currency.USD
+  );
 
   // fetch data needed for form
   const { data: projects } = useReadProjects();
@@ -71,16 +80,27 @@ function RfqForm({
   const { data: suppliers } = useReadCompanies({
     type: [CompanyType.SUPPLIER],
   });
+  const { data: quotes } = useReadQuotes({
+    rfq: null,
+  });
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
   const authorsInitialOptions = mapToSelectOptions(authors?.data);
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
+  const quotesInitialOptions = mapToSelectOptions(
+    quotes?.data?.map((quote) => ({
+      ...quote,
+      name: quote.referenceNumber,
+    }))
+  );
 
   const form = useForm({
+    resolver: zodResolver(rfqFormSchema),
     defaultValues: defaultValues ?? {
       referenceNumber: "",
+      quoteId: "",
       date: "",
-      currency: "",
+      currency: currentCurrency,
       value: "",
       notes: "",
       authorId: "",
@@ -88,12 +108,23 @@ function RfqForm({
       clientId: "",
       projectId: "",
       rfqReceivedAt: "",
-      quoteId: "",
     },
   });
 
-  const submitRfq = () => {
-    // hello world
+  const submitRfq = async (data: RfqForm) => {
+    onSubmit(data);
+    try {
+      if (mode === "add") {
+        createRfq.mutate(data);
+      } else {
+        updateRfq.mutate({ id: rfqId!, data });
+      }
+    } catch (error) {
+      console.error("Error submitting quote:", error);
+      form.setError("root", {
+        message: "Failed to submit. Please try again.",
+      });
+    }
   };
 
   return (
@@ -116,6 +147,28 @@ function RfqForm({
             />
           )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="quoteId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quote</FormLabel>
+                  <FormControl>
+                    <CreateNewCombobox
+                      initialOptions={quotesInitialOptions}
+                      createNewFunction={() => {
+                        console.log("cannot create new quote from RFQ form");
+                      }}
+                      disableCreateNew={true}
+                      label="quote"
+                      value={field.value ?? ""}
+                      onValueChange={(value) => field.onChange(value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="authorId"
@@ -142,6 +195,7 @@ function RfqForm({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="date"
@@ -150,58 +204,6 @@ function RfqForm({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value || ""}
-                      onValueChange={(value) => {
-                        setCurrentCurrency(value);
-                        field.onChange(value);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="EGP">EGP</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="SAR">SAR</SelectItem>
-                        <SelectItem value="AED">AED</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Value</FormLabel>
-                  <FormControl>
-                    <MaskInput
-                      mask="currency"
-                      currency={currentCurrency}
-                      placeholder="Enter value"
-                      value={field.value}
-                      onValueChange={(_maskedValue, unmaskedValue) => {
-                        field.onChange(unmaskedValue);
-                      }}
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -285,6 +287,61 @@ function RfqForm({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Currency</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={(value) => {
+                        setCurrentCurrency(value as Currency);
+                        field.onChange(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EGP">EGP</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="SAR">SAR</SelectItem>
+                        <SelectItem value="AED">AED</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Value
+                    <span className="text-muted-foreground">(Optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <MaskInput
+                      mask="currency"
+                      currency={currentCurrency}
+                      placeholder="Enter value"
+                      value={field.value}
+                      onValueChange={(_maskedValue, unmaskedValue) => {
+                        field.onChange(unmaskedValue);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <FormField
@@ -318,7 +375,7 @@ function RfqForm({
           {form.formState.isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            "Save Quote"
+            "Save RFQ"
           )}
         </Button>
       </form>

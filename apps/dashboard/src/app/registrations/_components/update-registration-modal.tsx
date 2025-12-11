@@ -3,33 +3,69 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UpdateRegistrationForm } from "./update-registration-form";
+import { RegistrationForm } from "./registration-form";
+
+type RegistrationStatus =
+  | "PURSUING"
+  | "REQUIREMENTS_COLLECTED"
+  | "DOCS_SENT"
+  | "UNDER_REVIEW"
+  | "PENDING_CONFIRMATION"
+  | "VERIFIED"
+  | "ON_HOLD"
+  | "DECLINED";
+
+interface Registration {
+  id: string;
+  companyId: string;
+  company: {
+    id: string;
+    name: string;
+  };
+  registrationStatus: RegistrationStatus;
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+  };
+  registrationFile: string | null;
+  notes: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
 
 interface UpdateRegistrationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  registrationId: string;
+  registration: Registration;
 }
 
 export function UpdateRegistrationModal({
   open,
   onOpenChange,
-  registrationId,
+  registration,
 }: UpdateRegistrationModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Update Registration</DialogTitle>
-          <DialogDescription>Update registration details.</DialogDescription>
+          <DialogTitle>Edit Registration</DialogTitle>
         </DialogHeader>
-        <UpdateRegistrationForm
-          registrationId={registrationId}
-          onSuccess={() => onOpenChange(false)}
+        <RegistrationForm
+          defaultValues={{
+            companyId: registration.companyId,
+            registrationStatus: registration.registrationStatus,
+            authorId: registration.authorId,
+            registrationFile: registration.registrationFile || "",
+            notes: registration.notes || "",
+          }}
+          registrationId={registration.id}
+          onSubmit={() => {
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>

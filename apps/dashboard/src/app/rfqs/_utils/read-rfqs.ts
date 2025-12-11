@@ -9,13 +9,12 @@ interface ReadRfqsParams {
   sort?: Array<{ id: string; desc: boolean }>;
   referenceNumber?: string;
   date?: string | [string, string];
-  client?: string;
-  supplier?: string;
-  project?: string;
-  author?: string;
+  client?: string[];
+  supplier?: string[];
+  project?: string[];
+  author?: string[];
   currency?: string[];
   rfqReceivedAt?: string | [string, string];
-  hasQuote?: string[];
 }
 
 export const readRfqs = async (params: ReadRfqsParams = {}) => {
@@ -31,7 +30,6 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
     author,
     currency,
     rfqReceivedAt,
-    hasQuote,
   } = params;
 
   // Build where clause from filters
@@ -70,39 +68,27 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
     }
   }
 
-  if (client) {
-    where.client = {
-      name: {
-        contains: client,
-        mode: "insensitive",
-      },
+  if (client && client.length > 0) {
+    where.clientId = {
+      in: client,
     };
   }
 
-  if (supplier) {
-    where.supplier = {
-      name: {
-        contains: supplier,
-        mode: "insensitive",
-      },
+  if (supplier && supplier.length > 0) {
+    where.supplierId = {
+      in: supplier,
     };
   }
 
-  if (project) {
-    where.project = {
-      name: {
-        contains: project,
-        mode: "insensitive",
-      },
+  if (project && project.length > 0) {
+    where.projectId = {
+      in: project,
     };
   }
 
-  if (author) {
-    where.author = {
-      name: {
-        contains: author,
-        mode: "insensitive",
-      },
+  if (author && author.length > 0) {
+    where.authorId = {
+      in: author,
     };
   }
 
@@ -110,19 +96,6 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
     where.currency = {
       in: currency as Currency[],
     };
-  }
-
-  if (hasQuote && hasQuote.length > 0) {
-    const hasTrue = hasQuote.includes("true");
-    const hasFalse = hasQuote.includes("false");
-
-    if (hasTrue && hasFalse) {
-      // Both selected, no filter needed
-    } else if (hasTrue) {
-      where.quoteId = { not: null };
-    } else if (hasFalse) {
-      where.quoteId = null;
-    }
   }
 
   if (rfqReceivedAt) {
@@ -208,6 +181,12 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
         select: {
           id: true,
           name: true,
+        },
+      },
+      quote: {
+        select: {
+          id: true,
+          referenceNumber: true,
         },
       },
     },

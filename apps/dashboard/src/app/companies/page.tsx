@@ -8,6 +8,7 @@ import { CompaniesTable } from "./companies-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
+import { AddCompanyModal } from "./_components/create-company-modal";
 
 export default function CompaniesPage() {
   const [
@@ -21,6 +22,10 @@ export default function CompaniesPage() {
   return (
     <>
       <main className="flex-1 p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Companies</h1>
+          <AddCompanyModal />
+        </div>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-5">
           <Card>
             <CardHeader>

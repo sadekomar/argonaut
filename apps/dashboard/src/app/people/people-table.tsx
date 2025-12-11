@@ -1,9 +1,10 @@
 "use client";
 
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
+  Calendar,
   Mail,
   Phone,
   User,
@@ -17,11 +18,14 @@ import {
   parseAsInteger,
   parseAsString,
   useQueryState,
+  useQueryStates,
 } from "nuqs";
 import * as React from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,8 +40,10 @@ import { useDataTable } from "@/hooks/use-data-table";
 import { getSortingStateParser } from "@/lib/parsers";
 import { readPeople } from "./_utils/read-people";
 import { useDeletePerson } from "./_components/use-people";
-import { useState } from "react";
 import { UpdatePersonModal } from "./_components/update-person-modal";
+import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
+import { useReadCompanies } from "@/app/companies/_components/use-companies";
+import { mapToSelectOptions } from "@/lib/utils";
 
 type PersonType = "AUTHOR" | "CONTACT_PERSON" | "INTERNAL";
 
@@ -56,26 +62,43 @@ interface Person {
   updatedAt: Date | string;
 }
 
+const formatDate = (date: Date | string) => {
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const getTypeBadgeVariant = (type: PersonType) => {
+  switch (type) {
+    case "AUTHOR":
+      return "default";
+    case "CONTACT_PERSON":
+      return "secondary";
+    case "INTERNAL":
+      return "outline";
+    default:
+      return "outline";
+  }
+};
+
 export function PeopleTable() {
   const deletePerson = useDeletePerson();
-  const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
 
-  // Read URL query state for pagination
-  const [page] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [perPage] = useQueryState("perPage", parseAsInteger.withDefault(40));
+  const [selectedPerson, setSelectedPerson] = useState<Person>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [pagination] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    perPage: parseAsInteger.withDefault(40),
+  });
 
   // Read URL query state for sorting
   const columnIds = React.useMemo(
-    () =>
-      new Set([
-        "name",
-        "email",
-        "phone",
-        "company",
-        "type",
-        "createdAt",
-        "updatedAt",
-      ]),
+    () => new Set(["name", "email", "phone", "company", "type", "createdAt"]),
     []
   );
   const [sort] = useQueryState(
@@ -86,337 +109,293 @@ export function PeopleTable() {
   );
 
   // Read URL query state for filters
-  const [name] = useQueryState("name", parseAsString.withDefault(""));
-  const [email] = useQueryState("email", parseAsString.withDefault(""));
-  const [phone] = useQueryState("phone", parseAsString.withDefault(""));
-  const [company] = useQueryState("company", parseAsString.withDefault(""));
-  const [personType] = useQueryState(
-    "type",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
+  const [filters] = useQueryStates({
+    name: parseAsString.withDefault(""),
+    email: parseAsString.withDefault(""),
+    phone: parseAsString.withDefault(""),
+    company: parseAsArrayOf(parseAsString).withDefault([]),
+    type: parseAsArrayOf(parseAsString).withDefault([]),
+  });
+
+  const { data: companies } = useReadCompanies();
+  const companiesInitialOptions = mapToSelectOptions(companies?.data);
 
   // Fetch people with server-side filtering, sorting, and pagination
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "people",
-      page,
-      perPage,
-      sort,
-      name,
-      email,
-      phone,
-      company,
-      personType,
-    ],
+    queryKey: ["people", { ...pagination, sort, ...filters }],
     queryFn: () =>
       readPeople({
-        page,
-        perPage,
+        page: pagination.page,
+        perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
-        name: name || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        company: company || undefined,
-        type: personType.length > 0 ? personType : undefined,
+        name: filters.name || undefined,
+        email: filters.email || undefined,
+        phone: filters.phone || undefined,
+        company: filters.company.length > 0 ? filters.company : undefined,
+        type: filters.type.length > 0 ? filters.type : undefined,
       }),
   });
 
   const people = data?.data ?? [];
   const pageCount = data?.pageCount ?? 1;
 
-  const columns = React.useMemo<ColumnDef<Person>[]>(
-    () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        size: 32,
-        enableSorting: false,
-        enableHiding: false,
+  const columnHelper = createColumnHelper<Person>();
+  const columns = [
+    columnHelper.display({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      size: 32,
+      enableSorting: false,
+      enableHiding: false,
+    }),
+    columnHelper.accessor("name", {
+      id: "name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Name" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <User className="size-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.name}</span>
+        </div>
+      ),
+      meta: {
+        label: "Name",
+        placeholder: "Search names...",
+        variant: "text",
+        icon: User,
       },
-      {
-        id: "name",
-        accessorKey: "name",
-        header: ({ column }: { column: Column<Person, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Name" />
-        ),
-        cell: ({ cell }) => (
-          <div className="flex items-center gap-1.5 font-medium">
-            <User className="size-4 text-muted-foreground" />
-            {cell.getValue<Person["name"]>()}
-          </div>
-        ),
-        meta: {
-          label: "Name",
-          placeholder: "Search names...",
-          variant: "text",
-          icon: User,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "email",
-        accessorKey: "email",
-        header: ({ column }: { column: Column<Person, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Email" />
-        ),
-        cell: ({ cell }) => {
-          const email = cell.getValue<Person["email"]>();
-          if (!email) return <span className="text-muted-foreground">N/A</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              <Mail className="size-4 text-muted-foreground" />
-              {email}
-            </div>
-          );
-        },
-        meta: {
-          label: "Email",
-          placeholder: "Search emails...",
-          variant: "text",
-          icon: Mail,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "phone",
-        accessorKey: "phone",
-        header: ({ column }: { column: Column<Person, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Phone" />
-        ),
-        cell: ({ cell }) => {
-          const phone = cell.getValue<Person["phone"]>();
-          if (!phone) return <span className="text-muted-foreground">N/A</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              <Phone className="size-4 text-muted-foreground" />
-              {phone}
-            </div>
-          );
-        },
-        meta: {
-          label: "Phone",
-          placeholder: "Search phones...",
-          variant: "text",
-          icon: Phone,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "company",
-        accessorFn: (row) => row.company?.name ?? "N/A",
-        header: ({ column }: { column: Column<Person, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Company" />
-        ),
-        cell: ({ row }) => (
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("email", {
+      id: "email",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Email" />
+      ),
+      cell: ({ row }) => {
+        const email = row.original.email;
+        if (!email) return <span className="text-muted-foreground">N/A</span>;
+        return (
           <div className="flex items-center gap-1.5">
-            <Building2 className="size-4 text-muted-foreground" />
-            {row.original.company?.name ?? "N/A"}
+            <Mail className="size-4 text-muted-foreground" />
+            {email}
           </div>
-        ),
-        meta: {
-          label: "Company",
-          placeholder: "Search companies...",
-          variant: "text",
-          icon: Building2,
-        },
-        enableColumnFilter: true,
+        );
       },
-      {
-        id: "type",
-        accessorKey: "type",
-        header: ({ column }: { column: Column<Person, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Type" />
-        ),
-        cell: ({ cell }) => {
-          const type = cell.getValue<Person["type"]>();
-          const typeConfig = {
-            AUTHOR: {
-              label: "Author",
-              icon: UserCheck,
-              variant: "default" as const,
-            },
-            CONTACT_PERSON: {
-              label: "Contact Person",
-              icon: Users,
-              variant: "secondary" as const,
-            },
-            INTERNAL: {
-              label: "Internal",
-              icon: Briefcase,
-              variant: "outline" as const,
-            },
-          };
-          const config = typeConfig[type];
-          const Icon = config.icon;
-
-          return (
-            <Badge variant={config.variant}>
-              <Icon className="mr-1 size-3" />
-              {config.label}
-            </Badge>
-          );
-        },
-        meta: {
-          label: "Type",
-          variant: "multiSelect",
-          options: [
-            { label: "Author", value: "AUTHOR", icon: UserCheck },
-            { label: "Contact Person", value: "CONTACT_PERSON", icon: Users },
-            { label: "Internal", value: "INTERNAL", icon: Briefcase },
-          ],
-        },
-        enableColumnFilter: true,
+      meta: {
+        label: "Email",
+        placeholder: "Search emails...",
+        variant: "text",
+        icon: Mail,
       },
-      {
-        id: "actions",
-        cell: function Cell({ row }) {
-          const person = row.original;
-
-          const handleEdit = () => {
-            setEditingPersonId(person.id);
-          };
-
-          const handleDelete = () => {
-            if (confirm(`Are you sure you want to delete ${person.name}?`)) {
-              deletePerson.mutate(person.id);
-            }
-          };
-
-          return (
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={deletePerson.isPending}
-                  >
-                    {deletePerson.isPending ? "Deleting..." : "Delete"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {editingPersonId === person.id && (
-                <UpdatePersonModal
-                  open={true}
-                  onOpenChange={(open) => {
-                    if (!open) setEditingPersonId(null);
-                  }}
-                  personId={person.id}
-                />
-              )}
-            </>
-          );
-        },
-        size: 32,
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("phone", {
+      id: "phone",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Phone" />
+      ),
+      cell: ({ row }) => {
+        const phone = row.original.phone;
+        if (!phone) return <span className="text-muted-foreground">N/A</span>;
+        return (
+          <div className="flex items-center gap-1.5">
+            <Phone className="size-4 text-muted-foreground" />
+            {phone}
+          </div>
+        );
       },
-    ],
-    [deletePerson]
-  );
+      meta: {
+        label: "Phone",
+        placeholder: "Search phones...",
+        variant: "text",
+        icon: Phone,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor((row) => row.company?.name ?? "N/A", {
+      id: "company",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Company" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <Building2 className="size-4 text-muted-foreground" />
+          {row.original.company?.name ?? "N/A"}
+        </div>
+      ),
+      meta: {
+        label: "Company",
+        variant: "multiSelect",
+        options: companiesInitialOptions,
+        icon: Building2,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("type", {
+      id: "type",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Type" />
+      ),
+      cell: ({ cell }) => {
+        const type = cell.getValue<Person["type"]>();
+        const typeConfig = {
+          AUTHOR: {
+            label: "Author",
+            icon: UserCheck,
+            variant: "default" as const,
+          },
+          CONTACT_PERSON: {
+            label: "Contact Person",
+            icon: Users,
+            variant: "secondary" as const,
+          },
+          INTERNAL: {
+            label: "Internal",
+            icon: Briefcase,
+            variant: "outline" as const,
+          },
+        };
+        const config = typeConfig[type];
+        const Icon = config.icon;
+
+        return (
+          <Badge variant={config.variant}>
+            <Icon className="mr-1 size-3" />
+            {config.label}
+          </Badge>
+        );
+      },
+      meta: {
+        label: "Type",
+        variant: "multiSelect",
+        options: [
+          { label: "Author", value: "AUTHOR", icon: UserCheck },
+          { label: "Contact Person", value: "CONTACT_PERSON", icon: Users },
+          { label: "Internal", value: "INTERNAL", icon: Briefcase },
+        ],
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("createdAt", {
+      id: "createdAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Created" />
+      ),
+      cell: ({ cell }) => {
+        const date = cell.getValue<Person["createdAt"]>();
+        return (
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-4 text-muted-foreground" />
+            {formatDate(date)}
+          </div>
+        );
+      },
+      meta: {
+        label: "Created At",
+        variant: "date",
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: "actions",
+      cell: function Cell({ row }) {
+        const person = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedPerson(person);
+                  setIsEditModalOpen(true);
+                }}
+              >
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setSelectedPerson(person);
+                  setIsDeleteModalOpen(true);
+                }}
+                disabled={deletePerson.isPending}
+              >
+                {deletePerson.isPending ? "Deleting..." : "Delete"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+      size: 32,
+    }),
+  ];
 
   const { table } = useDataTable({
-    data: people as Person[],
+    data: people,
     columns,
     pageCount,
     initialState: {
-      sorting: [{ id: "createdAt", desc: true }],
+      pagination: {
+        pageIndex: pagination.page - 1, // page is 1-based, pageIndex is 0-based
+        pageSize: pagination.perPage,
+      },
+      sorting: sort,
+      columnVisibility: {
+        select: false,
+      },
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
 
-  // Sync URL query state filters to table's column filters
-  // Process values the same way useDataTable does
-  const processFilterValue = React.useCallback(
-    (value: string | string[] | null | undefined): string[] | undefined => {
-      if (value === null || value === undefined) return undefined;
-      if (Array.isArray(value)) return value;
-      if (typeof value === "string" && /[^a-zA-Z0-9]/.test(value)) {
-        return value.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-      }
-      return [value];
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    const columnFilters: Array<{ id: string; value: string | string[] }> = [];
-
-    const nameValue = processFilterValue(name || null);
-    if (nameValue) {
-      columnFilters.push({ id: "name", value: nameValue });
-    }
-
-    const emailValue = processFilterValue(email || null);
-    if (emailValue) {
-      columnFilters.push({ id: "email", value: emailValue });
-    }
-
-    const phoneValue = processFilterValue(phone || null);
-    if (phoneValue) {
-      columnFilters.push({ id: "phone", value: phoneValue });
-    }
-
-    const companyValue = processFilterValue(company || null);
-    if (companyValue) {
-      columnFilters.push({ id: "company", value: companyValue });
-    }
-
-    if (personType.length > 0) {
-      columnFilters.push({ id: "type", value: personType });
-    }
-
-    // Only update if filters have actually changed to avoid infinite loops
-    const currentFilters = table.getState().columnFilters;
-    const currentFiltersMap = new Map(
-      currentFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-    const newFiltersMap = new Map(
-      columnFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-
-    // Check if filters have changed
-    const filtersChanged =
-      currentFilters.length !== columnFilters.length ||
-      Array.from(newFiltersMap.entries()).some(
-        ([id, value]) => currentFiltersMap.get(id) !== value
-      ) ||
-      Array.from(currentFiltersMap.keys()).some((id) => !newFiltersMap.has(id));
-
-    if (filtersChanged) {
-      table.setColumnFilters(columnFilters);
-    }
-  }, [name, email, phone, company, personType, processFilterValue, table]);
-
   return (
     <div className="data-table-container">
       <DataTable table={table} isLoading={isLoading}>
-        <DataTableToolbar table={table} />
+        <DataTableToolbar table={table}>
+          <DataTableSortList table={table} />
+        </DataTableToolbar>
       </DataTable>
+
+      {selectedPerson && (
+        <UpdatePersonModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          person={selectedPerson}
+        />
+      )}
+
+      {selectedPerson && (
+        <DeleteConfirmationModal
+          open={isDeleteModalOpen}
+          setIsOpen={setIsDeleteModalOpen}
+          title="Delete Person"
+          description="Are you sure you want to delete this person? This action cannot be undone."
+          deleteFunction={() => deletePerson.mutate(selectedPerson?.id ?? "")}
+        />
+      )}
     </div>
   );
 }

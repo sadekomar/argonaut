@@ -9,6 +9,7 @@ import { ProjectsTable } from "./_components/projects-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
+import { AddProjectModal } from "./_components/add-project-modal";
 
 export default function ProjectsPage() {
   const [
@@ -22,6 +23,10 @@ export default function ProjectsPage() {
   return (
     <>
       <main className="flex-1 p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Projects</h1>
+          <AddProjectModal />
+        </div>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card>
             <CardHeader>

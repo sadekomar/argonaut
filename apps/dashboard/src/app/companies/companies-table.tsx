@@ -1,25 +1,21 @@
 "use client";
 
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Building2,
-  Calendar,
-  Mail,
-  Phone,
-  MoreHorizontal,
-  User,
-} from "lucide-react";
+import { Building2, Calendar, Mail, Phone, MoreHorizontal } from "lucide-react";
 import {
   parseAsArrayOf,
   parseAsInteger,
   parseAsString,
   useQueryState,
+  useQueryStates,
 } from "nuqs";
 import * as React from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,10 +29,9 @@ import {
 import { useDataTable } from "@/hooks/use-data-table";
 import { getSortingStateParser } from "@/lib/parsers";
 import { readCompanies } from "./_utils/read-companies";
-import {
-  useUpdateCompany,
-  useDeleteCompany,
-} from "./_components/use-companies";
+import { useDeleteCompany } from "./_components/use-companies";
+import { UpdateCompanyModal } from "./_components/update-company-modal";
+import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import type { CompanyType } from "@repo/db";
 
 interface Company {
@@ -74,12 +69,16 @@ const getTypeBadgeVariant = (type: CompanyType) => {
 };
 
 export function CompaniesTable() {
-  const editCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
 
-  // Read URL query state for pagination
-  const [page] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [perPage] = useQueryState("perPage", parseAsInteger.withDefault(40));
+  const [selectedCompany, setSelectedCompany] = useState<Company>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [pagination] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    perPage: parseAsInteger.withDefault(40),
+  });
 
   // Read URL query state for sorting
   const columnIds = React.useMemo(
@@ -94,227 +93,216 @@ export function CompaniesTable() {
   );
 
   // Read URL query state for filters
-  const [name] = useQueryState("name", parseAsString.withDefault(""));
-  const [email] = useQueryState("email", parseAsString.withDefault(""));
-  const [phone] = useQueryState("phone", parseAsString.withDefault(""));
-  const [type] = useQueryState(
-    "type",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
+  const [filters] = useQueryStates({
+    name: parseAsString.withDefault(""),
+    email: parseAsString.withDefault(""),
+    phone: parseAsString.withDefault(""),
+    type: parseAsArrayOf(parseAsString).withDefault([]),
+  });
 
   // Fetch companies with server-side filtering, sorting, and pagination
   const { data, isLoading } = useQuery({
-    queryKey: ["companies", page, perPage, sort, name, email, phone, type],
+    queryKey: ["companies", { ...pagination, sort, ...filters }],
     queryFn: () =>
       readCompanies({
-        page,
-        perPage,
+        page: pagination.page,
+        perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
-        name: name || undefined,
-        email: email || undefined,
-        phone: phone || undefined,
-        type: type.length > 0 ? type : undefined,
+        name: filters.name || undefined,
+        email: filters.email || undefined,
+        phone: filters.phone || undefined,
+        type: filters.type.length > 0 ? filters.type : undefined,
       }),
   });
 
   const companies = data?.data ?? [];
   const pageCount = data?.pageCount ?? 1;
 
-  const columns = React.useMemo<ColumnDef<Company>[]>(
-    () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        size: 32,
-        enableSorting: false,
-        enableHiding: false,
+  const columnHelper = createColumnHelper<Company>();
+  const columns = [
+    columnHelper.display({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      size: 32,
+      enableSorting: false,
+      enableHiding: false,
+    }),
+    columnHelper.accessor("name", {
+      id: "name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Name" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <Building2 className="size-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.name}</span>
+        </div>
+      ),
+      meta: {
+        label: "Name",
+        placeholder: "Search companies...",
+        variant: "text",
+        icon: Building2,
       },
-      {
-        id: "name",
-        accessorKey: "name",
-        header: ({ column }: { column: Column<Company, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Name" />
-        ),
-        cell: ({ row }) => (
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("email", {
+      id: "email",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Email" />
+      ),
+      cell: ({ row }) => {
+        const email = row.original.email;
+        if (!email) return <span className="text-muted-foreground">N/A</span>;
+        return (
           <div className="flex items-center gap-1.5">
-            <Building2 className="size-4 text-muted-foreground" />
-            <span className="font-medium">{row.original.name}</span>
+            <Mail className="size-4 text-muted-foreground" />
+            {email}
           </div>
-        ),
-        meta: {
-          label: "Name",
-          placeholder: "Search companies...",
-          variant: "text",
-          icon: Building2,
-        },
-        enableColumnFilter: true,
+        );
       },
-      {
-        id: "email",
-        accessorKey: "email",
-        header: ({ column }: { column: Column<Company, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Email" />
-        ),
-        cell: ({ row }) => {
-          const email = row.original.email;
-          if (!email) return <span className="text-muted-foreground">N/A</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              <Mail className="size-4 text-muted-foreground" />
-              {email}
-            </div>
-          );
-        },
-        meta: {
-          label: "Email",
-          placeholder: "Search emails...",
-          variant: "text",
-          icon: Mail,
-        },
-        enableColumnFilter: true,
+      meta: {
+        label: "Email",
+        placeholder: "Search emails...",
+        variant: "text",
+        icon: Mail,
       },
-      {
-        id: "phone",
-        accessorKey: "phone",
-        header: ({ column }: { column: Column<Company, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Phone" />
-        ),
-        cell: ({ row }) => {
-          const phone = row.original.phone;
-          if (!phone) return <span className="text-muted-foreground">N/A</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              <Phone className="size-4 text-muted-foreground" />
-              {phone}
-            </div>
-          );
-        },
-        meta: {
-          label: "Phone",
-          placeholder: "Search phones...",
-          variant: "text",
-          icon: Phone,
-        },
-        enableColumnFilter: true,
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("phone", {
+      id: "phone",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Phone" />
+      ),
+      cell: ({ row }) => {
+        const phone = row.original.phone;
+        if (!phone) return <span className="text-muted-foreground">N/A</span>;
+        return (
+          <div className="flex items-center gap-1.5">
+            <Phone className="size-4 text-muted-foreground" />
+            {phone}
+          </div>
+        );
       },
-      {
-        id: "type",
-        accessorKey: "type",
-        header: ({ column }: { column: Column<Company, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Type" />
-        ),
-        cell: ({ cell }) => (
-          <Badge
-            variant={getTypeBadgeVariant(cell.getValue<Company["type"]>())}
-          >
-            {cell.getValue<Company["type"]>()}
-          </Badge>
-        ),
-        meta: {
-          label: "Type",
-          variant: "multiSelect",
-          options: [
-            { label: "Supplier", value: "SUPPLIER" },
-            { label: "Client", value: "CLIENT" },
-            { label: "Contractor", value: "CONTRACTOR" },
-            { label: "Consultant", value: "CONSULTANT" },
-          ],
-        },
-        enableColumnFilter: true,
+      meta: {
+        label: "Phone",
+        placeholder: "Search phones...",
+        variant: "text",
+        icon: Phone,
       },
-      {
-        id: "createdAt",
-        accessorKey: "createdAt",
-        header: ({ column }: { column: Column<Company, unknown> }) => (
-          <DataTableColumnHeader column={column} label="Created" />
-        ),
-        cell: ({ cell }) => {
-          const date = cell.getValue<Company["createdAt"]>();
-          return (
-            <div className="flex items-center gap-1.5">
-              <Calendar className="size-4 text-muted-foreground" />
-              {formatDate(date)}
-            </div>
-          );
-        },
-        meta: {
-          label: "Created At",
-          variant: "date",
-        },
-        enableColumnFilter: false,
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("type", {
+      id: "type",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Type" />
+      ),
+      cell: ({ cell }) => (
+        <Badge variant={getTypeBadgeVariant(cell.getValue<Company["type"]>())}>
+          {cell.getValue<Company["type"]>()}
+        </Badge>
+      ),
+      meta: {
+        label: "Type",
+        variant: "multiSelect",
+        options: [
+          { label: "Supplier", value: "SUPPLIER" },
+          { label: "Client", value: "CLIENT" },
+          { label: "Contractor", value: "CONTRACTOR" },
+          { label: "Consultant", value: "CONSULTANT" },
+        ],
       },
-      {
-        id: "actions",
-        cell: function Cell({ row }) {
-          const company = row.original;
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("createdAt", {
+      id: "createdAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Created" />
+      ),
+      cell: ({ cell }) => {
+        const date = cell.getValue<Company["createdAt"]>();
+        return (
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-4 text-muted-foreground" />
+            {formatDate(date)}
+          </div>
+        );
+      },
+      meta: {
+        label: "Created At",
+        variant: "date",
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: "actions",
+      cell: function Cell({ row }) {
+        const company = row.original;
 
-          const handleEdit = () => {
-            // TODO: Open edit modal or navigate to edit page
-            // For now, you can implement the edit modal similar to add-company-modal
-            console.log("Edit company:", company.id);
-          };
-
-          const handleDelete = () => {
-            if (
-              confirm(
-                `Are you sure you want to delete company ${company.name}?`
-              )
-            ) {
-              deleteCompany.mutate(company.id);
-            }
-          };
-
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleteCompany.isPending}
-                >
-                  {deleteCompany.isPending ? "Deleting..." : "Delete"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-        size: 32,
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedCompany(company);
+                  setIsEditModalOpen(true);
+                }}
+              >
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setSelectedCompany(company);
+                  setIsDeleteModalOpen(true);
+                }}
+                disabled={deleteCompany.isPending}
+              >
+                {deleteCompany.isPending ? "Deleting..." : "Delete"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
-    ],
-    [deleteCompany]
-  );
+      size: 32,
+    }),
+  ];
 
   const { table } = useDataTable({
-    data: companies as Company[],
+    data: companies,
     columns,
     pageCount,
     initialState: {
-      sorting: [{ id: "createdAt", desc: true }],
+      pagination: {
+        pageIndex: pagination.page - 1, // page is 1-based, pageIndex is 0-based
+        pageSize: pagination.perPage,
+      },
+      sorting: sort,
+      columnVisibility: {
+        select: false,
+      },
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
@@ -323,8 +311,28 @@ export function CompaniesTable() {
   return (
     <div className="data-table-container">
       <DataTable table={table} isLoading={isLoading}>
-        <DataTableToolbar table={table} />
+        <DataTableToolbar table={table}>
+          <DataTableSortList table={table} />
+        </DataTableToolbar>
       </DataTable>
+
+      {selectedCompany && (
+        <UpdateCompanyModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          company={selectedCompany}
+        />
+      )}
+
+      {selectedCompany && (
+        <DeleteConfirmationModal
+          open={isDeleteModalOpen}
+          setIsOpen={setIsDeleteModalOpen}
+          title="Delete Company"
+          description="Are you sure you want to delete this company? This action cannot be undone."
+          deleteFunction={() => deleteCompany.mutate(selectedCompany?.id ?? "")}
+        />
+      )}
     </div>
   );
 }

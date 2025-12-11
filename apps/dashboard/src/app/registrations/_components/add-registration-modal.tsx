@@ -3,20 +3,21 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AddRegistrationForm } from "./add-registration-form";
+import { RegistrationForm } from "./registration-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 export function AddRegistrationModal() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Add Registration
         </Button>
@@ -24,11 +25,19 @@ export function AddRegistrationModal() {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Registration</DialogTitle>
-          <DialogDescription>
-            Create a new registration for a company.
-          </DialogDescription>
         </DialogHeader>
-        <AddRegistrationForm />
+        <RegistrationForm
+          defaultValues={{
+            companyId: "",
+            registrationStatus: "PURSUING",
+            authorId: "",
+            registrationFile: "",
+            notes: "",
+          }}
+          onSubmit={() => {
+            setOpen(false);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

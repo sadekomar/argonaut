@@ -3,33 +3,53 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UpdatePersonForm } from "./update-person-form";
+import { PersonForm } from "./person-form";
+
+type PersonType = "AUTHOR" | "CONTACT_PERSON" | "INTERNAL";
+
+interface Person {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  type: PersonType;
+  companyId: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
 
 interface UpdatePersonModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  personId: string;
+  person: Person;
 }
 
 export function UpdatePersonModal({
   open,
   onOpenChange,
-  personId,
+  person,
 }: UpdatePersonModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Person</DialogTitle>
-          <DialogDescription>Update person details.</DialogDescription>
+          <DialogTitle>Edit Person</DialogTitle>
         </DialogHeader>
-        <UpdatePersonForm
-          personId={personId}
-          onSuccess={() => onOpenChange(false)}
+        <PersonForm
+          defaultValues={{
+            name: person.name,
+            email: person.email || "",
+            phone: person.phone || "",
+            companyId: person.companyId || "",
+            type: person.type,
+          }}
+          personId={person.id}
+          onSubmit={() => {
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>

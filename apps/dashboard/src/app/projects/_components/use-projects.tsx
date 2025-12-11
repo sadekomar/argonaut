@@ -3,24 +3,10 @@ import { readProjects, readProjectsMetadata } from "../_utils/read-projects";
 import { updateProject, UpdateProjectForm } from "../_utils/update-project";
 import { deleteProject } from "../_utils/delete-project";
 import { createProject, CreateProjectProps } from "../_utils/create-project";
+import { toast } from "sonner";
 
 export type GetProjectsResponse = Awaited<ReturnType<typeof readProjects>>;
 export type GetProjectsDataResponse = GetProjectsResponse["data"];
-
-// Utility functions
-function handleAbort<T extends (...args: any[]) => any>(
-  fn: T
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  return async (...args: Parameters<T>) => {
-    return fn(...args);
-  };
-}
-
-// Simple toast replacement
-const toast = {
-  success: (message: string) => console.log(`✅ ${message}`),
-  error: (message: string) => console.error(`❌ ${message}`),
-};
 
 export const useReadProjects = (
   params?: Parameters<typeof readProjects>[0]
@@ -39,9 +25,23 @@ export const useGetProjectsMetadata = () => {
 };
 
 export const useCreateProject = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (data: CreateProjectProps) => createProject(data),
     mutationKey: ["createProject"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projectsMetadata"] });
+      toast.success("Project created successfully", {
+        description: "The project has been created successfully.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to create project", {
+        description: error.message || "The project could not be created.",
+      });
+    },
   });
 };
 
@@ -88,11 +88,15 @@ export const useEditProject = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["projectsMetadata"] });
-      toast.success("Project updated successfully");
+      toast.success("Project updated successfully", {
+        description: "The project has been updated successfully.",
+      });
     },
     onError: (error, variables, context) => {
       queryClient.setQueryData(["projects"], context?.previousProjects);
-      toast.error(`Failed to update project: ${error.message}`);
+      toast.error("Failed to update project", {
+        description: error.message || "The project could not be updated.",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -130,11 +134,15 @@ export const useDeleteProject = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["projectsMetadata"] });
-      toast.success("Project deleted successfully");
+      toast.success("Project deleted successfully", {
+        description: "The project has been deleted successfully.",
+      });
     },
     onError: (error, variables, context) => {
       queryClient.setQueryData(["projects"], context?.previousProjects);
-      toast.error(`Failed to delete project: ${error.message}`);
+      toast.error("Failed to delete project", {
+        description: error.message || "The project could not be deleted.",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });

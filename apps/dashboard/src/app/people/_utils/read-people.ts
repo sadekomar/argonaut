@@ -10,7 +10,7 @@ interface ReadPeopleParams {
   name?: string;
   email?: string;
   phone?: string;
-  company?: string;
+  company?: string[];
   type?: string[];
 }
 
@@ -50,12 +50,9 @@ export const readPeople = async (params: ReadPeopleParams = {}) => {
     };
   }
 
-  if (company) {
-    where.company = {
-      name: {
-        contains: company,
-        mode: "insensitive",
-      },
+  if (company && company.length > 0) {
+    where.companyId = {
+      in: company,
     };
   }
 

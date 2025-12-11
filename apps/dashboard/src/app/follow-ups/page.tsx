@@ -28,7 +28,7 @@ export default function FollowUpsPage() {
     <>
       <main className="flex-1 p-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Quotes</h1>
+          <h1 className="text-3xl font-bold">Follow ups</h1>
           <CreateFollowUpModal
             open={isAddFollowUpModalOpen}
             onOpenChange={setIsAddFollowUpModalOpen}
