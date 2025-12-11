@@ -47,7 +47,7 @@ export async function createQuote(data: QuoteForm) {
   } = data;
 
   const serialNumber = await prisma.quote.count();
-  const referenceNumber = generateQuoteReferenceNumber(serialNumber, date);
+  const referenceNumber = generateQuoteReferenceNumber(serialNumber + 1, date);
   const rate = await getRate(currency);
 
   try {
