@@ -150,6 +150,10 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     [pagination, setPage, setPerPage]
   );
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+
   const columnIds = React.useMemo(() => {
     return new Set(
       columns.map((column) => column.id).filter(Boolean) as string[]
