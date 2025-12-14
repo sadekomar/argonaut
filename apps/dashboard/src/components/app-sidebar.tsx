@@ -34,6 +34,11 @@ const data = {
   ],
   navMain: [
     {
+      title: "Home",
+      url: "/",
+      icon: FileText,
+    },
+    {
       title: "Quotes",
       url: "/quotes",
       icon: FileText,

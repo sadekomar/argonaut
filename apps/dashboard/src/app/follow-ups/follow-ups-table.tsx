@@ -3,7 +3,13 @@
 import type { Column, ColumnDef } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, FileText, MoreHorizontal, User } from "lucide-react";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+  useQueryStates,
+} from "nuqs";
 import * as React from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -33,6 +39,10 @@ import {
 import { useState } from "react";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import { UpdateFollowUpModal } from "./_components/update-follow-up-modal";
+import { useReadQuotes } from "@/app/quotes/_components/use-quotes";
+import { useReadPeople } from "@/app/people/_components/use-people";
+import { PersonType } from "@/lib/enums";
+import { mapToSelectOptions } from "@/lib/utils";
 
 export interface FollowUp {
   id: string;
@@ -74,8 +84,10 @@ export function FollowUpsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Read URL query state for pagination
-  const [page] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [perPage] = useQueryState("perPage", parseAsInteger.withDefault(40));
+  const [pagination] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    perPage: parseAsInteger.withDefault(40),
+  });
 
   // Read URL query state for sorting
   const columnIds = React.useMemo(
@@ -90,32 +102,43 @@ export function FollowUpsTable() {
   );
 
   // Read URL query state for filters
-  const [quote] = useQueryState("quote", parseAsString.withDefault(""));
-  const [author] = useQueryState("author", parseAsString.withDefault(""));
-  const [notes] = useQueryState("notes", parseAsString.withDefault(""));
-  const [createdAt] = useQueryState("createdAt", parseAsString);
+  const [filters] = useQueryStates({
+    quote: parseAsArrayOf(parseAsString).withDefault([]),
+    author: parseAsArrayOf(parseAsString).withDefault([]),
+    notes: parseAsString.withDefault(""),
+    createdAt: parseAsString,
+  });
+
+  const { data: quotes } = useReadQuotes();
+  const { data: authors } = useReadPeople({
+    type: [PersonType.AUTHOR],
+  });
+
+  const quotesInitialOptions = React.useMemo(() => {
+    return (
+      quotes?.data?.map((quote) => ({
+        value: quote.id,
+        label: quote.referenceNumber,
+      })) ?? []
+    );
+  }, [quotes?.data]);
+
+  const authorsInitialOptions = mapToSelectOptions(authors?.data);
 
   // Fetch follow-ups with server-side filtering, sorting, and pagination
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "followUps",
-      page,
-      perPage,
-      sort,
-      quote,
-      author,
-      notes,
-      createdAt,
-    ],
+    queryKey: ["followUps", { ...pagination, sort, ...filters }],
     queryFn: () =>
       readFollowUps({
-        page,
-        perPage,
+        page: pagination.page,
+        perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
-        quote: quote || undefined,
-        author: author || undefined,
-        notes: notes || undefined,
-        createdAt: createdAt || undefined,
+        quote:
+          filters.quote.length > 0 ? (filters.quote as string[]) : undefined,
+        author:
+          filters.author.length > 0 ? (filters.author as string[]) : undefined,
+        notes: filters.notes || undefined,
+        createdAt: filters.createdAt || undefined,
       }),
   });
 
@@ -165,8 +188,8 @@ export function FollowUpsTable() {
         ),
         meta: {
           label: "Quote",
-          placeholder: "Search quotes...",
-          variant: "text",
+          variant: "multiSelect",
+          options: quotesInitialOptions,
           icon: FileText,
         },
         enableColumnFilter: true,
@@ -185,8 +208,8 @@ export function FollowUpsTable() {
         ),
         meta: {
           label: "Author",
-          placeholder: "Search authors...",
-          variant: "text",
+          variant: "multiSelect",
+          options: authorsInitialOptions,
           icon: User,
         },
         enableColumnFilter: true,
@@ -292,70 +315,18 @@ export function FollowUpsTable() {
     columns,
     pageCount,
     initialState: {
-      sorting: [{ id: "createdAt", desc: true }],
+      pagination: {
+        pageIndex: pagination.page - 1, // page is 1-based, pageIndex is 0-based
+        pageSize: pagination.perPage,
+      },
+      sorting: sort,
+      columnVisibility: {
+        select: false,
+      },
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
-
-  // Sync URL query state filters to table's column filters
-  // Process values the same way useDataTable does
-  const processFilterValue = React.useCallback(
-    (value: string | string[] | null | undefined): string[] | undefined => {
-      if (value === null || value === undefined) return undefined;
-      if (Array.isArray(value)) return value;
-      if (typeof value === "string" && /[^a-zA-Z0-9]/.test(value)) {
-        return value.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-      }
-      return [value];
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    const columnFilters: Array<{ id: string; value: string | string[] }> = [];
-
-    const quoteValue = processFilterValue(quote || null);
-    if (quoteValue) {
-      columnFilters.push({ id: "quote", value: quoteValue });
-    }
-
-    const authorValue = processFilterValue(author || null);
-    if (authorValue) {
-      columnFilters.push({ id: "author", value: authorValue });
-    }
-
-    const notesValue = processFilterValue(notes || null);
-    if (notesValue) {
-      columnFilters.push({ id: "notes", value: notesValue });
-    }
-
-    const createdAtValue = processFilterValue(createdAt || null);
-    if (createdAtValue) {
-      columnFilters.push({ id: "createdAt", value: createdAtValue });
-    }
-
-    // Only update if filters have actually changed to avoid infinite loops
-    const currentFilters = table.getState().columnFilters;
-    const currentFiltersMap = new Map(
-      currentFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-    const newFiltersMap = new Map(
-      columnFilters.map((f) => [f.id, JSON.stringify(f.value)])
-    );
-
-    // Check if filters have changed
-    const filtersChanged =
-      currentFilters.length !== columnFilters.length ||
-      Array.from(newFiltersMap.entries()).some(
-        ([id, value]) => currentFiltersMap.get(id) !== value
-      ) ||
-      Array.from(currentFiltersMap.keys()).some((id) => !newFiltersMap.has(id));
-
-    if (filtersChanged) {
-      table.setColumnFilters(columnFilters);
-    }
-  }, [quote, author, notes, createdAt, processFilterValue, table]);
 
   return (
     <div className="data-table-container">

@@ -15,7 +15,7 @@ export function Uploader() {
       description={{
         maxFiles: 4,
         maxFileSize: "5MB",
-        fileTypes: "JPEG, PNG, GIF",
+        fileTypes: "JPEG, PNG, GIF, PDF",
       }}
     />
   );

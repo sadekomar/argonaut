@@ -7,8 +7,8 @@ interface ReadFollowUpsParams {
   page?: number;
   perPage?: number;
   sort?: Array<{ id: string; desc: boolean }>;
-  quote?: string;
-  author?: string;
+  quote?: string[];
+  author?: string[];
   notes?: string;
   createdAt?: string | [string, string];
 }
@@ -27,21 +27,15 @@ export const readFollowUps = async (params: ReadFollowUpsParams = {}) => {
   // Build where clause from filters
   const where: Prisma.FollowUpWhereInput = {};
 
-  if (quote) {
-    where.quote = {
-      referenceNumber: {
-        contains: quote,
-        mode: "insensitive",
-      },
+  if (quote && quote.length > 0) {
+    where.quoteId = {
+      in: quote,
     };
   }
 
-  if (author) {
-    where.author = {
-      name: {
-        contains: author,
-        mode: "insensitive",
-      },
+  if (author && author.length > 0) {
+    where.authorId = {
+      in: author,
     };
   }
 
