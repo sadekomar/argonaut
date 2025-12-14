@@ -284,10 +284,6 @@ export const ComboboxCreateNew = ({
   const { inputValue, type, onValueChange, onOpenChange } =
     useContext(ComboboxContext);
 
-  if (!inputValue.trim()) {
-    return null;
-  }
-
   const handleCreateNew = () => {
     onCreateNew(inputValue.trim());
     onValueChange(inputValue.trim());
@@ -303,14 +299,10 @@ export const ComboboxCreateNew = ({
       onClick={handleCreateNew}
       type="button"
     >
-      {children ? (
-        children(inputValue)
-      ) : (
-        <>
-          <PlusIcon className="h-4 w-4 text-muted-foreground" />
-          <span>{`Create new ${type}: "${inputValue}"`}</span>
-        </>
-      )}
+      <>
+        <PlusIcon className="h-4 w-4 text-muted-foreground" />
+        <span>{`Create new ${type}: "${inputValue}"`}</span>
+      </>
     </button>
   );
 };

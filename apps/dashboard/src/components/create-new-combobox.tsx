@@ -69,11 +69,6 @@ const CreateNewCombobox = ({
       <ComboboxTrigger className="w-[300px]" />
       <ComboboxContent>
         <ComboboxInput />
-        <ComboboxEmpty>
-          {!disableCreateNew && (
-            <ComboboxCreateNew onCreateNew={handleCreateNew} />
-          )}
-        </ComboboxEmpty>
         <ComboboxList>
           <ComboboxGroup>
             {data.map((option) => (
@@ -86,6 +81,9 @@ const CreateNewCombobox = ({
               </ComboboxItem>
             ))}
           </ComboboxGroup>
+          {!disableCreateNew && (
+            <ComboboxCreateNew onCreateNew={handleCreateNew} />
+          )}
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
