@@ -27,7 +27,8 @@ export default async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
 
   // if user isn't logged in don't show them protected routes
-  if (isProtectedRoute && !sessionCookie) {
+  // don't show them anything
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
