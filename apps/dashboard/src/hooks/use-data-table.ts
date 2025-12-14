@@ -167,8 +167,10 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     (updaterOrValue: Updater<SortingState>) => {
       if (typeof updaterOrValue === "function") {
         const newSorting = updaterOrValue(sorting);
+        void setPage(1);
         setSorting(newSorting as ExtendedColumnSort<TData>[]);
       } else {
+        void setPage(1);
         setSorting(updaterOrValue as ExtendedColumnSort<TData>[]);
       }
     },
