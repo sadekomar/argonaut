@@ -60,6 +60,15 @@ export function generateQuoteReferenceNumber(
   serialNumber: number,
   date: Date | string
 ) {
+  // const latestQuoteSerialNumber = await prisma.quote.findFirst({
+  //   orderBy: {
+  //     serialNumber: "desc",
+  //   },
+  // select: {2
+  //     serialNumber: true,
+  //   },
+  // });
+
   // Serial number should start with 2 and have three digits (e.g. 2001, 2002, ..., 2999)
   const padded = String(serialNumber).padStart(3, "0");
   const serial = `2${padded}`;

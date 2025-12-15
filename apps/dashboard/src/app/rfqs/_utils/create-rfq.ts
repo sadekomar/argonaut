@@ -74,9 +74,10 @@ export async function createRfq(data: RfqForm) {
   const rate = await getRate(currency);
 
   try {
+    console.log("quoteId", quoteId);
     await prisma.rfq.create({
       data: {
-        quoteId: quoteId,
+        quoteId: quoteId || null,
         referenceNumber: referenceNumber,
         value: Number(value),
         date: new Date(date),

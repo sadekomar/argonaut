@@ -140,7 +140,9 @@ function buildWhereClause(
   // If rfq is null, fetch quotes that have no associated RFQ
   // If rfq is undefined, fetch all quotes (no filter)
   if (rfq === null) {
-    where.Rfq = null;
+    where.Rfq = {
+      none: {},
+    };
   }
 
   return where;

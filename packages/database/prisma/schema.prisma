@@ -133,7 +133,7 @@ model Quote {
   approximateSiteDeliveryDate DateTime?
   createdAt                   DateTime     @default(now())
   updatedAt                   DateTime     @updatedAt
-  Rfq                         Rfq?
+  Rfq                         Rfq[]
   FollowUp                    FollowUp[]
   objectKeys                  String[]
 
@@ -182,9 +182,7 @@ model Rfq {
   project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   // once recieved new fields will unlock for value, currency, rate
   rfqReceivedAt   DateTime?
-  // all rfqs must have a quoteId
-  // one-to-one relationship with quote so unique constraint
-  quoteId         String?   @unique
+  quoteId         String?
   quote           Quote?    @relation(fields: [quoteId], references: [id])
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

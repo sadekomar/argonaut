@@ -37,7 +37,7 @@ import { useCreateRfq, useUpdateRfq } from "./use-rfqs";
 
 const rfqFormSchema = z.object({
   referenceNumber: z.string().trim().optional(),
-  quoteId: z.string().trim().min(1, { message: "Quote is required" }),
+  quoteId: z.string().trim().optional(),
   date: z.string().trim().min(1, { message: "Date is required" }),
   currency: z.enum(Currency),
   authorId: z.string().trim().min(1, { message: "Author is required" }),
@@ -152,7 +152,10 @@ export function RfqForm({
               name="quoteId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quote</FormLabel>
+                  <FormLabel>
+                    Quote{" "}
+                    <span className="text-muted-foreground">(Optional)</span>
+                  </FormLabel>
                   <FormControl>
                     <CreateNewCombobox
                       initialOptions={quotesInitialOptions}
