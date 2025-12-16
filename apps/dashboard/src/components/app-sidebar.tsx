@@ -6,8 +6,11 @@ import {
   FileText,
   Users,
   ClipboardList,
-  Briefcase,
-  UserCheck,
+  Home,
+  DollarSign,
+  MessageCircle,
+  Folder,
+  BadgeCheck,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -36,17 +39,17 @@ const data = {
     {
       title: "Home",
       url: "/",
-      icon: FileText,
+      icon: Home,
     },
     {
       title: "Quotes",
       url: "/quotes",
-      icon: FileText,
+      icon: DollarSign,
     },
     {
       title: "Follow ups",
       url: "/follow-ups",
-      icon: FileText,
+      icon: MessageCircle,
     },
     {
       title: "RFQs",
@@ -66,12 +69,12 @@ const data = {
     {
       title: "Projects",
       url: "/projects",
-      icon: Briefcase,
+      icon: Folder,
     },
     {
       title: "Registrations",
       url: "/registrations",
-      icon: UserCheck,
+      icon: BadgeCheck,
     },
     {
       title: "Resources",
