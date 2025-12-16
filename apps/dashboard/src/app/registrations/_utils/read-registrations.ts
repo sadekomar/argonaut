@@ -1,13 +1,14 @@
 "use server";
 
 import { prisma } from "@repo/db";
-import type { Prisma, RegistrationStatus } from "@repo/db";
+import type { Prisma, RegistrationStatus, CompanyType } from "@repo/db";
 
 interface ReadRegistrationsParams {
   page?: number;
   perPage?: number;
   sort?: Array<{ id: string; desc: boolean }>;
   company?: string;
+  companyType?: string[];
   registrationStatus?: string[];
   author?: string;
   createdAt?: string | [string, string];
@@ -21,6 +22,7 @@ export const readRegistrations = async (
     perPage = 10,
     sort = [{ id: "createdAt", desc: true }],
     company,
+    companyType,
     registrationStatus,
     author,
     createdAt,
@@ -29,13 +31,21 @@ export const readRegistrations = async (
   // Build where clause from filters
   const where: Prisma.RegistrationWhereInput = {};
 
+  // Build company filter
+  const companyFilter: Prisma.CompanyWhereInput = {};
   if (company) {
-    where.company = {
-      name: {
-        contains: company,
-        mode: "insensitive",
-      },
+    companyFilter.name = {
+      contains: company,
+      mode: "insensitive",
     };
+  }
+  if (companyType && companyType.length > 0) {
+    companyFilter.type = {
+      in: companyType as CompanyType[],
+    };
+  }
+  if (Object.keys(companyFilter).length > 0) {
+    where.company = companyFilter;
   }
 
   if (registrationStatus && registrationStatus.length > 0) {
@@ -87,6 +97,8 @@ export const readRegistrations = async (
       switch (sortItem.id) {
         case "company":
           return { company: { name: order } };
+        case "companyType":
+          return { company: { type: order } };
         case "registrationStatus":
           return { registrationStatus: order };
         case "author":
@@ -112,6 +124,7 @@ export const readRegistrations = async (
         select: {
           id: true,
           name: true,
+          type: true,
         },
       },
       author: {

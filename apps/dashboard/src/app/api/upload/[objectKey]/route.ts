@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import { deleteQuoteFile } from "@/app/quotes/_utils/delete-quote-file";
 
 const s3 = new S3Client();
 const BUCKET_NAME = "argonaut-bucket-200-crm";
@@ -51,6 +56,52 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching S3 file:", error);
     return new NextResponse("File not found", { status: 404 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ objectKey: string }> }
+) {
+  try {
+    const { objectKey } = await params;
+
+    if (!objectKey || objectKey.includes("..") || objectKey.includes("//")) {
+      return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
+    }
+
+    const body = await request.json().catch(() => null);
+    const quoteId = body?.quoteId;
+
+    if (!quoteId || typeof quoteId !== "string") {
+      return NextResponse.json(
+        { error: "quoteId is required" },
+        { status: 400 }
+      );
+    }
+
+    const deleteDbResult = await deleteQuoteFile(quoteId, objectKey);
+    if (!deleteDbResult.success) {
+      return NextResponse.json(
+        deleteDbResult.errors ?? { error: "Unable to delete file" },
+        { status: deleteDbResult.status ?? 400 }
+      );
+    }
+
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: objectKey,
+      })
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting S3 file:", error);
+    return NextResponse.json(
+      { error: "Failed to delete file" },
+      { status: 500 }
+    );
   }
 }
 

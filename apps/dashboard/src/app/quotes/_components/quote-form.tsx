@@ -47,6 +47,8 @@ import {
 import { Quote } from "./quotes-table";
 import { getSortingStateParser } from "@/lib/parsers";
 import React from "react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);
@@ -96,8 +98,69 @@ export function QuoteForm({
 
   const createQuote = useGenerateCreateQuote();
   const updateQuote = useUpdateQuote();
+  const queryClient = useQueryClient();
 
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
+  const [existingObjectKeys, setExistingObjectKeys] = useState(
+    defaultValues?.objectKeys ?? []
+  );
+  const [deletingKey, setDeletingKey] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    setExistingObjectKeys(defaultValues?.objectKeys ?? []);
+  }, [defaultValues?.objectKeys]);
+
+  const handleDeleteFile = async (objectKey: string) => {
+    if (!quoteId) return;
+    setDeletingKey(objectKey);
+    try {
+      const response = await fetch(
+        `/api/upload/${encodeURIComponent(objectKey)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ quoteId }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        const firstError =
+          (errorBody as { error?: string })?.error ||
+          (() => {
+            const values = Object.values(errorBody as Record<string, unknown>);
+            const firstValue = values[0];
+            if (Array.isArray(firstValue)) return firstValue[0] as string;
+            if (typeof firstValue === "string") return firstValue;
+            return undefined;
+          })() ||
+          "Failed to delete file";
+        throw new Error(firstError);
+      }
+
+      setExistingObjectKeys((prev) => prev.filter((key) => key !== objectKey));
+      form.setValue(
+        "objectKeys",
+        (form.getValues("objectKeys") ?? []).filter((key) => key !== objectKey)
+      );
+
+      // Invalidate all quote queries regardless of their params
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "quotes",
+      });
+
+      toast.success("File deleted");
+    } catch (error: any) {
+      console.error("Error deleting file:", error);
+      toast.error("Failed to delete file", {
+        description: error?.message ?? "Please try again.",
+      });
+    } finally {
+      setDeletingKey(null);
+    }
+  };
 
   const form = useForm<QuoteForm>({
     resolver: zodResolver(quoteFormSchema),
@@ -142,10 +205,22 @@ export function QuoteForm({
   const { control: uploadControl } = useUploadFiles({
     route: "form",
     onUploadComplete: ({ files }) => {
-      form.setValue(
-        "objectKeys",
-        files.map((file) => file.objectKey)
-      );
+      const newObjectKeys = files.map((file) => file.objectKey);
+
+      if (mode == "edit") {
+        const currentObjectKeys = form.getValues("objectKeys") ?? [];
+        const updatedObjectKeys = [...currentObjectKeys, ...newObjectKeys];
+
+        form.setValue("objectKeys", updatedObjectKeys);
+        updateQuote.mutate({
+          id: quoteId!,
+          data: {
+            objectKeys: updatedObjectKeys,
+          },
+        });
+      } else {
+        form.setValue("objectKeys", newObjectKeys);
+      }
     },
     onError: (error) => {
       form.setError("objectKeys", {
@@ -218,6 +293,7 @@ export function QuoteForm({
                   <FormControl>
                     <CreateNewCombobox
                       initialOptions={authorsInitialOptions}
+                      disableCreateNew={true}
                       createNewFunction={async (value) => {
                         const author = await createPerson({
                           id: value.id,
@@ -499,9 +575,9 @@ export function QuoteForm({
           <label className="text-sm font-medium text-muted-foreground mb-3 block">
             Related Files
           </label>
-          {defaultValues?.objectKeys && defaultValues.objectKeys.length > 0 ? (
+          {existingObjectKeys.length > 0 ? (
             <div className="space-y-2">
-              {defaultValues?.objectKeys.map((objectKey, index) => (
+              {existingObjectKeys.map((objectKey, index) => (
                 <div
                   key={objectKey}
                   className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card"
@@ -519,21 +595,31 @@ export function QuoteForm({
                       </p>
                     </div>
                   </div>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="flex-shrink-0"
-                  >
-                    <a
-                      href={`/api/upload/${encodeURIComponent(objectKey)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      View
-                    </a>
-                  </Button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={`/api/upload/${encodeURIComponent(objectKey)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        View
+                      </a>
+                    </Button>
+                    {quoteId && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingKey === objectKey}
+                        onClick={() => handleDeleteFile(objectKey)}
+                      >
+                        {deletingKey === objectKey ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

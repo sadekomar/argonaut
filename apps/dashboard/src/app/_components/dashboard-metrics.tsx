@@ -34,10 +34,12 @@ function MetricCard({
   title,
   value,
   icon: Icon,
+  unit,
   description,
 }: {
   title: string;
   value: string | number;
+  unit?: string;
   icon: React.ComponentType<{ className?: string }>;
   description?: string;
 }) {
@@ -48,7 +50,9 @@ function MetricCard({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold">
+          {value} {unit}
+        </div>
         {description && (
           <p className="text-xs text-muted-foreground mt-1">{description}</p>
         )}
@@ -113,6 +117,7 @@ export function DashboardMetrics() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <MetricCard
             title="Total Quotations Value"
+            unit="EGP"
             value={formatNumber(metrics.quotations.totalValue)}
             icon={FileText}
             description="Sum of all quotation values"

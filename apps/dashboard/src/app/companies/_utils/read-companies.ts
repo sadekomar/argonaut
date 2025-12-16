@@ -15,7 +15,7 @@ interface ReadCompaniesParams {
 export const readCompanies = async (params: ReadCompaniesParams = {}) => {
   const {
     page = 1,
-    perPage = 10,
+    perPage,
     sort = [{ id: "createdAt", desc: true }],
     name,
     email,
@@ -84,14 +84,13 @@ export const readCompanies = async (params: ReadCompaniesParams = {}) => {
   const companies = await prisma.company.findMany({
     where,
     orderBy: orderBy.length > 0 ? orderBy : [{ createdAt: "desc" }],
-    skip: (page - 1) * perPage,
-    take: perPage,
+    ...(perPage ? { take: perPage, skip: (page - 1) * perPage } : {}),
   });
 
   return {
     data: companies,
     total,
-    pageCount: Math.ceil(total / perPage),
+    pageCount: Math.ceil(total / (perPage ?? 40)),
   };
 };
 

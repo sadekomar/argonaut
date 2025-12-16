@@ -15,6 +15,7 @@ import {
   FileCheck,
   Send,
   Pause,
+  Tag,
 } from "lucide-react";
 import {
   parseAsArrayOf,
@@ -48,6 +49,7 @@ import {
 } from "./_components/use-registrations";
 import { UpdateRegistrationModal } from "./_components/update-registration-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
+import type { CompanyType } from "@repo/db";
 
 type RegistrationStatus =
   | "PURSUING"
@@ -65,6 +67,7 @@ interface Registration {
   company: {
     id: string;
     name: string;
+    type: CompanyType;
   };
   registrationStatus: RegistrationStatus;
   authorId: string;
@@ -85,6 +88,21 @@ const formatDate = (date: Date | string) => {
     month: "short",
     day: "numeric",
   });
+};
+
+const getTypeBadgeVariant = (type: CompanyType) => {
+  switch (type) {
+    case "SUPPLIER":
+      return "default";
+    case "CLIENT":
+      return "secondary";
+    case "CONTRACTOR":
+      return "outline";
+    case "CONSULTANT":
+      return "outline";
+    default:
+      return "outline";
+  }
 };
 
 const getStatusBadge = (status: RegistrationStatus) => {
@@ -160,6 +178,7 @@ export function RegistrationsTable() {
     () =>
       new Set([
         "company",
+        "companyType",
         "registrationStatus",
         "author",
         "createdAt",
@@ -176,6 +195,7 @@ export function RegistrationsTable() {
   // Read URL query state for filters
   const [filters] = useQueryStates({
     company: parseAsString.withDefault(""),
+    companyType: parseAsArrayOf(parseAsString).withDefault([]),
     registrationStatus: parseAsArrayOf(parseAsString).withDefault([]),
     author: parseAsString.withDefault(""),
   });
@@ -189,6 +209,8 @@ export function RegistrationsTable() {
         perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
         company: filters.company || undefined,
+        companyType:
+          filters.companyType.length > 0 ? filters.companyType : undefined,
         registrationStatus:
           filters.registrationStatus.length > 0
             ? filters.registrationStatus
@@ -241,6 +263,28 @@ export function RegistrationsTable() {
         placeholder: "Search companies...",
         variant: "text",
         icon: Building2,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor((row) => row.company.type, {
+      id: "companyType",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Company Type" />
+      ),
+      cell: ({ row }) => {
+        const type = row.original.company.type;
+        return <Badge variant={getTypeBadgeVariant(type)}>{type}</Badge>;
+      },
+      meta: {
+        label: "Company Type",
+        variant: "multiSelect",
+        options: [
+          { label: "Supplier", value: "SUPPLIER" },
+          { label: "Client", value: "CLIENT" },
+          { label: "Contractor", value: "CONTRACTOR" },
+          { label: "Consultant", value: "CONSULTANT" },
+        ],
+        icon: Tag,
       },
       enableColumnFilter: true,
     }),
