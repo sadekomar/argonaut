@@ -42,6 +42,7 @@ export function EditRfqModal({ open, onOpenChange, rfq }: EditRfqModalProps) {
             rfqReceivedAt: formatDateForInput(rfq.rfqReceivedAt),
             notes: rfq.notes || "",
             quoteReferenceNumber: rfq.quote?.referenceNumber,
+            rfqStatus: rfq.rfqStatus,
           }}
           onSubmit={() => {
             onOpenChange(false);

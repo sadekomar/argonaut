@@ -5,9 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   Calendar,
+  CheckCircle,
   FileText,
   MoreHorizontal,
   Package,
+  Send,
   Target,
   User,
 } from "lucide-react";
@@ -68,7 +70,7 @@ export function RfqsTable() {
     () =>
       new Set([
         "referenceNumber",
-        "date",
+        "rfqStatus",
         "client",
         "supplier",
         "project",
@@ -87,7 +89,6 @@ export function RfqsTable() {
 
   // Read URL query state for filters
   const [filters] = useQueryStates({
-    date: parseAsString,
     referenceNumber: parseAsString.withDefault(""),
     client: parseAsArrayOf(parseAsString).withDefault([]),
     supplier: parseAsArrayOf(parseAsString).withDefault([]),
@@ -95,6 +96,7 @@ export function RfqsTable() {
     author: parseAsArrayOf(parseAsString).withDefault([]),
     currency: parseAsArrayOf(parseAsString).withDefault([]),
     rfqReceivedAt: parseAsString,
+    rfqStatus: parseAsArrayOf(parseAsString).withDefault([]),
   });
 
   const { data: projects } = useReadProjects();
@@ -122,7 +124,7 @@ export function RfqsTable() {
         perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
         referenceNumber: filters.referenceNumber,
-        date: filters.date ?? undefined,
+        rfqStatus: filters.rfqStatus.length > 0 ? filters.rfqStatus : undefined,
         client: filters.client.length > 0 ? filters.client : undefined,
         supplier: filters.supplier.length > 0 ? filters.supplier : undefined,
         project: filters.project.length > 0 ? filters.project : undefined,
@@ -132,7 +134,7 @@ export function RfqsTable() {
       }),
   });
 
-  const rfqs = data?.data ?? [];
+  const rfqs = (data?.data ?? []) as Rfq[];
   const pageCount = data?.pageCount ?? 1;
 
   const columnHelper = createColumnHelper<Rfq>();
@@ -178,23 +180,36 @@ export function RfqsTable() {
       },
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("date", {
-      id: "date",
+    columnHelper.accessor("rfqStatus", {
+      id: "rfqStatus",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Date" />
+        <DataTableColumnHeader column={column} label="Status" />
       ),
       cell: ({ cell }) => {
-        const date = cell.getValue<Rfq["date"]>();
+        const status = cell.getValue<Rfq["rfqStatus"]>();
+        const Icon = status === "RECEIVED" ? CheckCircle : Send;
+
         return (
-          <div className="flex items-center gap-1.5">
-            <Calendar className="size-4 text-muted-foreground" />
-            {formatDate(date)}
-          </div>
+          <Badge
+            variant="outline"
+            className={
+              status === "RECEIVED"
+                ? "border-green-500 text-green-700 dark:text-green-400"
+                : "border-blue-500 text-blue-700 dark:text-blue-400"
+            }
+          >
+            <Icon className="mr-1 size-3" />
+            {status === "RECEIVED" ? "Received" : "Sent"}
+          </Badge>
         );
       },
       meta: {
-        label: "Date",
-        variant: "date",
+        label: "Status",
+        variant: "multiSelect",
+        options: [
+          { label: "Sent", value: "SENT", icon: Send },
+          { label: "Received", value: "RECEIVED", icon: CheckCircle },
+        ],
       },
       enableColumnFilter: true,
     }),
@@ -341,7 +356,11 @@ export function RfqsTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                className="cursor-pointer bg-gray-100 rounded-3xl border border-gray-200"
+                size="icon"
+              >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>

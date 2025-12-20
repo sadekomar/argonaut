@@ -16,6 +16,8 @@ import {
   Target,
   User,
   DollarSign,
+  Users,
+  FileQuestion,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +86,13 @@ export function ViewQuoteModal({
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                <Users className="size-4" />
+                Contact Person
+              </label>
+              <p className="mt-1 text-sm">{quote.contactPerson.name}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 <DollarSign className="size-4" />
                 Value
               </label>
@@ -115,6 +124,20 @@ export function ViewQuoteModal({
                 </label>
                 <p className="mt-1 text-sm">
                   {formatDate(quote.approximateSiteDeliveryDate)}
+                </p>
+              </div>
+            )}
+            {"rfq" in quote && (quote as any).rfq && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <FileQuestion className="size-4" />
+                  RFQ
+                </label>
+                <p className="mt-1 text-sm">
+                  {typeof (quote as any).rfq === "object" &&
+                  "referenceNumber" in (quote as any).rfq
+                    ? String((quote as any).rfq.referenceNumber)
+                    : String((quote as any).rfq)}
                 </p>
               </div>
             )}

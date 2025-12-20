@@ -2,11 +2,14 @@
 
 import { Prisma, prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
-import type { Currency } from "@repo/db";
+import type { Currency, RfqStatus } from "@repo/db";
 import { RfqForm } from "../_components/rfq-form";
 
 export async function updateRfq(id: string, data: Partial<RfqForm>) {
   const {
+    referenceNumber,
+    quoteId,
+    rfqStatus,
     value,
     date,
     currency,
@@ -19,52 +22,38 @@ export async function updateRfq(id: string, data: Partial<RfqForm>) {
   } = data;
 
   try {
-    const updateData: Prisma.RfqUpdateInput = {};
+    const updateData: Prisma.RfqUpdateInput = {
+      ...(referenceNumber && { referenceNumber }),
+      ...(rfqStatus && { rfqStatus }),
+      ...(quoteId && { quote: { connect: { id: quoteId } } }),
+      ...(date && { date: date ? new Date(date) : null }),
+      ...(currency && { currency }),
+      ...(value && { value: Number(value) }),
+      ...(notes && { notes: notes || null }),
+      ...(authorId && { author: { connect: { id: authorId } } }),
+      ...(clientId && { client: { connect: { id: clientId } } }),
+      ...(projectId && {
+        project: { connect: { id: projectId } },
+      }),
+      ...(supplierId && {
+        supplier: { connect: { id: supplierId } },
+      }),
+      ...(rfqReceivedAt && {
+        rfqReceivedAt: rfqReceivedAt ? new Date(rfqReceivedAt) : null,
+      }),
+    };
 
-    if (date !== undefined) {
-      updateData.date = new Date(date);
+    console.log("updateData", updateData);
+
+    try {
+      await prisma.rfq.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (e) {
+      console.error("error updating rfq", e);
     }
 
-    if (currency !== undefined) {
-      updateData.currency = currency as Currency;
-      // If currency changes, we might want to update the rate
-      // For now, we'll keep the existing rate
-    }
-
-    if (value !== undefined) {
-      updateData.value = Number(value);
-    }
-
-    if (notes !== undefined) {
-      updateData.notes = notes || null;
-    }
-
-    if (authorId !== undefined) {
-      updateData.author = { connect: { id: authorId } };
-    }
-
-    if (clientId !== undefined) {
-      updateData.client = { connect: { id: clientId } };
-    }
-
-    if (projectId !== undefined) {
-      updateData.project = { connect: { id: projectId } };
-    }
-
-    if (supplierId !== undefined) {
-      updateData.supplier = { connect: { id: supplierId } };
-    }
-
-    if (rfqReceivedAt !== undefined) {
-      updateData.rfqReceivedAt = rfqReceivedAt ? new Date(rfqReceivedAt) : null;
-    }
-
-    await prisma.rfq.update({
-      where: { id },
-      data: updateData,
-    });
-
-    revalidatePath("/");
     return { success: true };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

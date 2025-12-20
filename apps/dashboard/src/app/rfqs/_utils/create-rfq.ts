@@ -30,6 +30,17 @@ export type ExchangeRateResponse =
   | ExchangeRateSuccessResponse
   | ExchangeRateErrorResponse;
 
+// ARGO-RFQ-1xxx-mm-yyyy
+function generateRfqReferenceNumber(serialNumber: number, date: Date | string) {
+  // Serial number should start with 1 and have three digits (e.g. 1001, 1002, ..., 1999)
+  const padded = String(serialNumber).padStart(3, "0");
+  const serial = `1${padded}`;
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `ARGO-RFQ-${serial}-${month}-${year}`;
+}
+
 export async function createRfq(data: RfqForm) {
   const {
     quoteId,
@@ -41,23 +52,10 @@ export async function createRfq(data: RfqForm) {
     clientId,
     projectId,
     supplierId,
+    rfqStatus,
   } = data;
 
-  console.log("creating rfq");
-
-  // ARGO-RFQ-1xxx-mm-yyyy
-  function generateRfqReferenceNumber(
-    serialNumber: number,
-    date: Date | string
-  ) {
-    // Serial number should start with 1 and have three digits (e.g. 1001, 1002, ..., 1999)
-    const padded = String(serialNumber).padStart(3, "0");
-    const serial = `1${padded}`;
-    const d = new Date(date);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `ARGO-RFQ-${serial}-${month}-${year}`;
-  }
+  console.log("creating rfq", data);
 
   async function getRate(code: string) {
     const response = await fetch("https://open.er-api.com/v6/latest/EGP").then(
@@ -70,7 +68,10 @@ export async function createRfq(data: RfqForm) {
   }
 
   const serialNumber = await prisma.rfq.count();
-  const referenceNumber = generateRfqReferenceNumber(serialNumber, date);
+  const referenceNumber = generateRfqReferenceNumber(
+    serialNumber,
+    date || new Date()
+  );
   const rate = await getRate(currency);
 
   try {
@@ -80,7 +81,7 @@ export async function createRfq(data: RfqForm) {
         quoteId: quoteId || null,
         referenceNumber: referenceNumber,
         value: Number(value),
-        date: new Date(date),
+        date: date ? new Date(date) : null,
         currency: currency as Currency,
         rate: rate,
         notes: notes,
@@ -88,6 +89,7 @@ export async function createRfq(data: RfqForm) {
         clientId: clientId,
         projectId: projectId,
         supplierId: supplierId,
+        rfqStatus: rfqStatus,
       },
     });
 

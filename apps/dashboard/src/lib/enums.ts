@@ -21,3 +21,8 @@ export enum Currency {
   SAR = "SAR",
   AED = "AED",
 }
+
+export enum RfqStatus {
+  SENT = "SENT",
+  RECEIVED = "RECEIVED",
+}

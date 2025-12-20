@@ -82,7 +82,7 @@ export default function RfqsPage() {
       <div className="grid grid-cols-1 gap-6">
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Quotes</CardTitle>
+            <CardTitle>RFQs</CardTitle>
           </CardHeader>
           <CardContent>
             <Suspense>

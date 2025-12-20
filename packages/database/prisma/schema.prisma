@@ -82,6 +82,11 @@ model Verification {
 // 4 enums
 // 7 models (3 core and 4 supporting)
 
+enum RfqStatus {
+  SENT
+  RECEIVED
+}
+
 enum QuoteOutcome {
   WON
   PENDING
@@ -167,7 +172,7 @@ model Rfq {
   // ARGO-RFQ-1xxx-mm-yyyy
   serialNumber    Int       @default(autoincrement())
   referenceNumber String
-  date            DateTime
+  date            DateTime?
   currency        Currency
   rate            Float
   value           Int
@@ -186,6 +191,7 @@ model Rfq {
   quote           Quote?    @relation(fields: [quoteId], references: [id])
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  rfqStatus       RfqStatus @default(SENT)
 
   // --- INDEXES ---
   @@index([authorId])

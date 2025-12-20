@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Rfq" ALTER COLUMN "date" DROP NOT NULL;

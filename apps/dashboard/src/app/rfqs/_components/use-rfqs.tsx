@@ -7,6 +7,7 @@ import { RfqForm } from "./rfq-form";
 import { toast } from "sonner";
 
 type Currency = "EGP" | "USD" | "EUR" | "GBP" | "SAR" | "AED";
+type RfqStatus = "SENT" | "RECEIVED";
 
 function handleAbort<T extends (...args: any[]) => any>(
   fn: T
@@ -18,9 +19,10 @@ function handleAbort<T extends (...args: any[]) => any>(
 
 export interface Rfq {
   id: string;
+  rfqStatus: RfqStatus;
   serialNumber: number;
   referenceNumber: string;
-  date: Date | string;
+  date: Date | string | null;
   currency: Currency;
   rate: number;
   value: number;

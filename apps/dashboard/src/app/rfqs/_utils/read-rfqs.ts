@@ -1,19 +1,19 @@
 "use server";
 
 import { prisma } from "@repo/db";
-import type { Currency, Prisma } from "@repo/db";
+import type { Currency, Prisma, RfqStatus } from "@repo/db";
 
 interface ReadRfqsParams {
   page?: number;
   perPage?: number;
   sort?: Array<{ id: string; desc: boolean }>;
   referenceNumber?: string;
-  date?: string | [string, string];
   client?: string[];
   supplier?: string[];
   project?: string[];
   author?: string[];
   currency?: string[];
+  rfqStatus?: string[];
   rfqReceivedAt?: string | [string, string];
 }
 
@@ -21,14 +21,14 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
   const {
     page = 1,
     perPage,
-    sort = [{ id: "date", desc: true }],
+    sort = [{ id: "referenceNumber", desc: true }],
     referenceNumber,
-    date,
     client,
     supplier,
     project,
     author,
     currency,
+    rfqStatus,
     rfqReceivedAt,
   } = params;
 
@@ -40,32 +40,6 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
       contains: referenceNumber,
       mode: "insensitive",
     };
-  }
-
-  if (date) {
-    // Date can be a timestamp string or comma-separated timestamps for range
-    if (typeof date === "string") {
-      const parts = date.split(",").filter(Boolean);
-      if (parts.length === 2) {
-        // Date range
-        where.date = {
-          gte: new Date(Number(parts[0])),
-          lte: new Date(Number(parts[1])),
-        };
-      } else if (parts.length === 1) {
-        // Single date (timestamp)
-        const dateObj = new Date(Number(parts[0]));
-        where.date = {
-          gte: new Date(dateObj.setHours(0, 0, 0, 0)),
-          lte: new Date(dateObj.setHours(23, 59, 59, 999)),
-        };
-      }
-    } else if (Array.isArray(date) && date.length === 2) {
-      where.date = {
-        gte: new Date(Number(date[0])),
-        lte: new Date(Number(date[1])),
-      };
-    }
   }
 
   if (client && client.length > 0) {
@@ -95,6 +69,12 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
   if (currency && currency.length > 0) {
     where.currency = {
       in: currency as Currency[],
+    };
+  }
+
+  if (rfqStatus && rfqStatus.length > 0) {
+    where.rfqStatus = {
+      in: rfqStatus as RfqStatus[],
     };
   }
 
@@ -131,8 +111,8 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
     switch (sortItem.id) {
       case "referenceNumber":
         return { referenceNumber: order };
-      case "date":
-        return { date: order };
+      case "rfqStatus":
+        return { rfqStatus: order };
       case "client":
         return { client: { name: order } };
       case "supplier":

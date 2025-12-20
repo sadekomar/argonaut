@@ -50,6 +50,7 @@ import {
 import { UpdateRegistrationModal } from "./_components/update-registration-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import type { CompanyType } from "@repo/db";
+import { ViewRegistrationModal } from "./_components/view-registration-modal";
 
 type RegistrationStatus =
   | "PURSUING"
@@ -167,6 +168,7 @@ export function RegistrationsTable() {
     useState<Registration>();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const [pagination] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -427,6 +429,14 @@ export function RegistrationsTable() {
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedRegistration(registration);
+                  setIsViewModalOpen(true);
+                }}
+              >
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedRegistration(registration);
                   setIsEditModalOpen(true);
                 }}
               >
@@ -493,6 +503,14 @@ export function RegistrationsTable() {
           deleteFunction={() =>
             deleteRegistration.mutate(selectedRegistration?.id ?? "")
           }
+        />
+      )}
+
+      {selectedRegistration && (
+        <ViewRegistrationModal
+          open={isViewModalOpen}
+          onOpenChange={setIsViewModalOpen}
+          registration={selectedRegistration}
         />
       )}
     </div>

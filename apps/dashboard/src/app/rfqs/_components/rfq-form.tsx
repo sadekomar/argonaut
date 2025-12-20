@@ -31,14 +31,14 @@ import { createCompany } from "@/app/companies/_utils/create-company";
 import { createProject } from "@/app/projects/_utils/create-project";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { CompanyType, Currency, PersonType } from "@/lib/enums";
+import { CompanyType, Currency, PersonType, RfqStatus } from "@/lib/enums";
 import { useReadQuotes } from "@/app/quotes/_components/use-quotes";
 import { useCreateRfq, useUpdateRfq } from "./use-rfqs";
 
 const rfqFormSchema = z.object({
   referenceNumber: z.string().trim().optional(),
   quoteId: z.string().trim().optional(),
-  date: z.string().trim().min(1, { message: "Date is required" }),
+  date: z.string().trim().optional(),
   currency: z.enum(Currency),
   authorId: z.string().trim().min(1, { message: "Author is required" }),
   supplierId: z.string().trim().min(1, { message: "Supplier is required" }),
@@ -47,6 +47,7 @@ const rfqFormSchema = z.object({
   notes: z.string().trim().optional(),
   value: z.string().optional(),
   rfqReceivedAt: z.string().optional(),
+  rfqStatus: z.enum(RfqStatus),
 });
 
 export type RfqForm = z.infer<typeof rfqFormSchema>;
@@ -67,6 +68,9 @@ export function RfqForm({
 
   const [currentCurrency, setCurrentCurrency] = useState<Currency>(
     Currency.USD
+  );
+  const [currentRfqStatus, setCurrentRfqStatus] = useState<RfqStatus>(
+    RfqStatus.SENT
   );
 
   // fetch data needed for form
@@ -108,6 +112,7 @@ export function RfqForm({
       clientId: "",
       projectId: "",
       rfqReceivedAt: "",
+      rfqStatus: RfqStatus.SENT,
     },
   });
 
@@ -201,19 +206,6 @@ export function RfqForm({
 
             <FormField
               control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="clientId"
               render={({ field }) => (
                 <FormItem>
@@ -292,28 +284,28 @@ export function RfqForm({
             />
             <FormField
               control={form.control}
-              name="currency"
+              name="rfqStatus"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Currency</FormLabel>
+                  <FormLabel>Status</FormLabel>
                   <FormControl>
                     <Select
-                      value={field.value || ""}
+                      value={field.value}
                       onValueChange={(value) => {
-                        setCurrentCurrency(value as Currency);
+                        setCurrentRfqStatus(value as RfqStatus);
                         field.onChange(value);
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select currency" />
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="EGP">EGP</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="SAR">SAR</SelectItem>
-                        <SelectItem value="AED">AED</SelectItem>
+                        <SelectItem value={RfqStatus.SENT}>
+                          {RfqStatus.SENT}
+                        </SelectItem>
+                        <SelectItem value={RfqStatus.RECEIVED}>
+                          {RfqStatus.RECEIVED}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -321,30 +313,81 @@ export function RfqForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Value
-                    <span className="text-muted-foreground">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <MaskInput
-                      mask="currency"
-                      currency={currentCurrency}
-                      placeholder="Enter value"
-                      value={field.value}
-                      onValueChange={(_maskedValue, unmaskedValue) => {
-                        field.onChange(unmaskedValue);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            {mode === "edit" &&
+              form.getValues("rfqStatus") === RfqStatus.RECEIVED && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="rfqReceivedAt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Received At</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Currency</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value || ""}
+                            onValueChange={(value) => {
+                              setCurrentCurrency(value as Currency);
+                              field.onChange(value);
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select currency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="EGP">EGP</SelectItem>
+                              <SelectItem value="USD">USD</SelectItem>
+                              <SelectItem value="EUR">EUR</SelectItem>
+                              <SelectItem value="GBP">GBP</SelectItem>
+                              <SelectItem value="SAR">SAR</SelectItem>
+                              <SelectItem value="AED">AED</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Value
+                          <span className="text-muted-foreground">
+                            (Optional)
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <MaskInput
+                            mask="currency"
+                            currency={currentCurrency}
+                            placeholder="Enter value"
+                            value={field.value}
+                            onValueChange={(_maskedValue, unmaskedValue) => {
+                              field.onChange(unmaskedValue);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
-            />
           </div>
 
           <FormField
