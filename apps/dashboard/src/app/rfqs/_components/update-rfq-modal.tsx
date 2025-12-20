@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { RfqForm } from "./rfq-form";
 import { Rfq } from "./use-rfqs";
-import { Currency } from "@/lib/enums";
+import { Currency, RfqStatus } from "@/lib/enums";
 
 // Helper function to format date for HTML date input (YYYY-MM-DD)
 const formatDateForInput = (date: Date | string | null | undefined): string => {
@@ -42,7 +42,7 @@ export function EditRfqModal({ open, onOpenChange, rfq }: EditRfqModalProps) {
             rfqReceivedAt: formatDateForInput(rfq.rfqReceivedAt),
             notes: rfq.notes || "",
             quoteReferenceNumber: rfq.quote?.referenceNumber,
-            rfqStatus: rfq.rfqStatus,
+            rfqStatus: rfq.rfqStatus as RfqStatus,
           }}
           onSubmit={() => {
             onOpenChange(false);

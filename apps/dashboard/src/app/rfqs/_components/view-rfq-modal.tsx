@@ -55,21 +55,9 @@ export function ViewRfqModal({ open, onOpenChange, rfq }: ViewRfqModalProps) {
                 <Calendar className="size-4" />
                 Date
               </label>
-              <p className="mt-1 text-sm">{formatDate(rfq.date)}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                <User className="size-4" />
-                Author
-              </label>
-              <p className="mt-1 text-sm">{rfq.author.name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                <Building2 className="size-4" />
-                Client
-              </label>
-              <p className="mt-1 text-sm">{rfq.client.name}</p>
+              <p className="mt-1 text-sm">
+                {rfq.date ? formatDate(rfq.date) : ""}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">

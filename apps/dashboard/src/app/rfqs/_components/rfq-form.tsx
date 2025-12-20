@@ -292,7 +292,6 @@ export function RfqForm({
                     <Select
                       value={field.value}
                       onValueChange={(value) => {
-                        setCurrentRfqStatus(value as RfqStatus);
                         field.onChange(value);
                       }}
                     >
