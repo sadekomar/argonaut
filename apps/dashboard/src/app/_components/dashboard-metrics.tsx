@@ -64,11 +64,11 @@ function MetricCard({
 const quotesChartConfig = {
   won: {
     label: "Won",
-    color: "var(--chart-1)",
+    color: "var(--chart-2)",
   },
   lost: {
     label: "Lost",
-    color: "var(--chart-2)",
+    color: "var(--chart-1)",
   },
   pending: {
     label: "Pending",
@@ -140,6 +140,27 @@ export function DashboardMetrics() {
             icon={Clock}
             description="Awaiting outcome"
           />
+          <MetricCard
+            title="Won Quotations Value"
+            unit="EGP"
+            value={formatNumber(metrics.quotations.wonValue)}
+            icon={TrendingUp}
+            description="Total value of won quotations"
+          />
+          <MetricCard
+            title="Lost Quotations Value"
+            unit="EGP"
+            value={formatNumber(metrics.quotations.lostValue)}
+            icon={TrendingDown}
+            description="Total value of lost quotations"
+          />
+          <MetricCard
+            title="Pending Quotations Value"
+            unit="EGP"
+            value={formatNumber(metrics.quotations.pendingValue)}
+            icon={Clock}
+            description="Total value of pending quotations"
+          />
         </div>
         {!isLoadingQuotesChart &&
           quotesTimeSeries &&
@@ -147,8 +168,8 @@ export function DashboardMetrics() {
             <ChartAreaInteractive
               data={quotesTimeSeries}
               config={quotesChartConfig}
-              title="Quotations Value Over Time"
-              description="Total quotation values grouped by outcome"
+              title="Number of Quotations Over Time"
+              description="Total number of quotations grouped by outcome"
               dataKeys={["won", "lost", "pending"]}
               defaultTimeRange="90d"
               showTimeRangeSelector={true}

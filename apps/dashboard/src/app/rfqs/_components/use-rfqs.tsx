@@ -58,7 +58,7 @@ export interface Rfq {
 export type GetRfqsResponse = Awaited<ReturnType<typeof readRfqs>>;
 export type GetRfqsDataResponse = GetRfqsResponse["data"];
 
-export const useGetRfq = (id: string) => {
+export const useReadRfq = (id: string) => {
   return useQuery({
     queryKey: ["rfq", id],
     queryFn: handleAbort(() => readRfq(id)),
@@ -66,14 +66,14 @@ export const useGetRfq = (id: string) => {
   });
 };
 
-export const useGetRfqs = (params?: Parameters<typeof readRfqs>[0]) => {
+export const useReadRfqs = (params?: Parameters<typeof readRfqs>[0]) => {
   return useQuery({
     queryKey: ["rfqs", params],
-    queryFn: handleAbort(() => readRfqs(params)),
+    queryFn: () => readRfqs(params),
   });
 };
 
-export const useGetRfqsMetadata = () => {
+export const useReadRfqsMetadata = () => {
   return useQuery({
     queryKey: ["rfqsMetadata"],
     queryFn: handleAbort(readRfqsMetadata),

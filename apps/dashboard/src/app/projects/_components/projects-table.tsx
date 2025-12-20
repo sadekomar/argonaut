@@ -162,8 +162,7 @@ export function ProjectsTable() {
       ),
       cell: ({ cell }) => {
         const status = cell.getValue<Project["status"]>();
-        if (!status)
-          return <span className="text-muted-foreground">N/A</span>;
+        if (!status) return <span className="text-muted-foreground">N/A</span>;
         const Icon = status === "IN_HAND" ? CheckCircle : Clock;
 
         return (
@@ -237,7 +236,11 @@ export function ProjectsTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                className="cursor-pointer bg-gray-100 rounded-3xl border border-gray-200"
+                size="icon"
+              >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>

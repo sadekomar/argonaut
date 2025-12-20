@@ -30,19 +30,16 @@ export async function getQuotesTimeSeries(
     },
     select: {
       date: true,
-      value: true,
-      rate: true,
       quoteOutcome: true,
     },
   });
 
-  // Group quotes by date and outcome, summing values
+  // Group quotes by date and outcome, counting quotes
   const dateMap = new Map<string, { won: number; lost: number; pending: number }>();
 
   for (const quote of quotes) {
     // Format date as YYYY-MM-DD
     const dateKey = quote.date.toISOString().split("T")[0];
-    const totalValue = quote.value * quote.rate;
 
     if (!dateMap.has(dateKey)) {
       dateMap.set(dateKey, { won: 0, lost: 0, pending: 0 });
@@ -51,13 +48,13 @@ export async function getQuotesTimeSeries(
     const dateData = dateMap.get(dateKey)!;
     switch (quote.quoteOutcome) {
       case QuoteOutcome.WON:
-        dateData.won += totalValue;
+        dateData.won += 1;
         break;
       case QuoteOutcome.LOST:
-        dateData.lost += totalValue;
+        dateData.lost += 1;
         break;
       case QuoteOutcome.PENDING:
-        dateData.pending += totalValue;
+        dateData.pending += 1;
         break;
     }
   }

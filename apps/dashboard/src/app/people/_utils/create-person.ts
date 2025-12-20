@@ -1,7 +1,6 @@
 "use server";
 
 import { Prisma, prisma } from "@repo/db";
-import { revalidatePath } from "next/cache";
 import { PersonType } from "@repo/db";
 
 export interface CreatePersonForm {
@@ -16,6 +15,8 @@ export interface CreatePersonForm {
 export async function createPerson(data: CreatePersonForm) {
   const { id, name, email, phone, companyId, type } = data;
 
+  console.log("createPerson", data);
+
   try {
     const person = await prisma.person.create({
       data: {
@@ -28,7 +29,6 @@ export async function createPerson(data: CreatePersonForm) {
       },
     });
 
-    revalidatePath("/");
     return person;
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

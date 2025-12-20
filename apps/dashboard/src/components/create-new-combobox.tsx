@@ -4,7 +4,6 @@ import {
   Combobox,
   ComboboxContent,
   ComboboxCreateNew,
-  ComboboxEmpty,
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,

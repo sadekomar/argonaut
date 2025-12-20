@@ -149,7 +149,11 @@ function buildWhereClause(
 }
 
 export const readQuotes = async (params: ReadQuotesParams = {}) => {
-  const { page, perPage, sort = [{ id: "date", desc: true }] } = params;
+  const {
+    page,
+    perPage,
+    sort = [{ id: "referenceNumber", desc: true }],
+  } = params;
 
   // Build where clause from filters
   const where = buildWhereClause(params);

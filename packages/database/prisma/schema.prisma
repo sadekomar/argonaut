@@ -263,7 +263,7 @@ model Person {
 
 model Company {
   id                       String         @id @default(uuid())
-  name                     String
+  name                     String         @unique
   email                    String?
   phone                    String?
   type                     CompanyType    @default(CLIENT)

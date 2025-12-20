@@ -15,7 +15,7 @@ interface ReadProjectsParams {
 export const readProjects = async (params: ReadProjectsParams = {}) => {
   const {
     page = 1,
-    perPage = 10,
+    perPage,
     sort = [{ id: "createdAt", desc: true }],
     name,
     status,
@@ -84,14 +84,13 @@ export const readProjects = async (params: ReadProjectsParams = {}) => {
       },
     },
     orderBy: orderBy.length > 0 ? orderBy : [{ createdAt: "desc" }],
-    skip: (page - 1) * perPage,
-    take: perPage,
+    ...(perPage ? { take: perPage, skip: (page - 1) * perPage } : {}),
   });
 
   return {
     data: projects,
     total,
-    pageCount: Math.ceil(total / perPage),
+    pageCount: Math.ceil(total / (perPage ?? 40)),
   };
 };
 

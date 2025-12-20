@@ -44,7 +44,22 @@ export async function createQuote(data: QuoteForm) {
     supplierId,
     approximateSiteDeliveryDate,
     objectKeys,
+    contactPersonPhone,
+    contactPersonEmail,
+    rfqId,
   } = data;
+
+  if (contactPersonPhone || contactPersonEmail) {
+    // update contact person fields if supplied
+    await prisma.person.update({
+      where: { id: contactPersonId },
+      data: {
+        phone: contactPersonPhone,
+        email: contactPersonEmail,
+        companyId: clientId,
+      },
+    });
+  }
 
   const serialNumber = await prisma.quote.count();
   const referenceNumber = generateQuoteReferenceNumber(serialNumber + 1, date);
@@ -53,6 +68,11 @@ export async function createQuote(data: QuoteForm) {
   try {
     await prisma.quote.create({
       data: {
+        Rfq: {
+          connect: {
+            id: rfqId,
+          },
+        },
         referenceNumber: referenceNumber,
         value: Number(value),
         date: new Date(date),

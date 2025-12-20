@@ -33,6 +33,7 @@ import { useDeleteCompany } from "./_components/use-companies";
 import { UpdateCompanyModal } from "./_components/update-company-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import type { CompanyType } from "@repo/db";
+import Link from "next/link";
 
 interface Company {
   id: string;
@@ -258,12 +259,23 @@ export function CompaniesTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                className="cursor-pointer bg-gray-100 rounded-3xl border border-gray-200"
+                size="icon"
+              >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Link
+                  href={`/quotes?${company.type.toLowerCase()}=${company.id}`}
+                >
+                  View Quotes
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedCompany(company);

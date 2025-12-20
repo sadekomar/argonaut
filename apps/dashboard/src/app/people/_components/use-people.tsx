@@ -34,6 +34,7 @@ export const useCreatePerson = () => {
       toast.success("Person created successfully", {
         description: "The person has been created successfully.",
       });
+      // because the ids don't match so it doesn't select it anymore that's what happens actually
     },
     onError: (error) => {
       toast.error("Failed to create person", {

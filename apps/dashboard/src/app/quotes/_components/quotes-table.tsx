@@ -135,7 +135,9 @@ export function QuotesTable() {
 
   const [sort] = useQueryState(
     "sort",
-    getSortingStateParser<Quote>(columnIds).withDefault([])
+    getSortingStateParser<Quote>(columnIds).withDefault([
+      { id: "referenceNumber", desc: true },
+    ])
   );
   // Read URL query state for filters
   const [filters] = useQueryStates({
@@ -437,7 +439,11 @@ export function QuotesTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                className="cursor-pointer bg-gray-100 rounded-3xl border border-gray-200"
+                size="icon"
+              >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>

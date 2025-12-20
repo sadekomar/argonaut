@@ -9,6 +9,9 @@ export interface DashboardMetrics {
     won: number;
     lost: number;
     pending: number;
+    pendingValue: number;
+    wonValue: number;
+    lostValue: number;
   };
   projects: {
     total: number;
@@ -30,11 +33,12 @@ export interface DashboardMetrics {
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  // Get all quotes with their values and rates for calculating total value
+  // Get all quotes with their values, rates, and outcomes for calculating metrics
   const quotes = await prisma.quote.findMany({
     select: {
       value: true,
       rate: true,
+      quoteOutcome: true,
     },
   });
 
@@ -42,6 +46,19 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const totalQuotationsValue = quotes.reduce((sum, quote) => {
     return sum + quote.value * quote.rate;
   }, 0);
+
+  // Calculate total values by outcome
+  const wonValue = quotes
+    .filter((quote) => quote.quoteOutcome === QuoteOutcome.WON)
+    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
+
+  const lostValue = quotes
+    .filter((quote) => quote.quoteOutcome === QuoteOutcome.LOST)
+    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
+
+  const pendingValue = quotes
+    .filter((quote) => quote.quoteOutcome === QuoteOutcome.PENDING)
+    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
 
   // Count quotes by outcome using Prisma count for better performance
   const [wonQuotations, lostQuotations, pendingQuotations] = await Promise.all([
@@ -100,6 +117,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       won: wonQuotations,
       lost: lostQuotations,
       pending: pendingQuotations,
+      pendingValue: pendingValue,
+      wonValue: wonValue,
+      lostValue: lostValue,
     },
     projects: {
       total: totalProjects,

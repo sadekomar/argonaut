@@ -20,7 +20,7 @@ interface ReadRfqsParams {
 export const readRfqs = async (params: ReadRfqsParams = {}) => {
   const {
     page = 1,
-    perPage = 10,
+    perPage,
     sort = [{ id: "date", desc: true }],
     referenceNumber,
     date,
@@ -191,14 +191,13 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
       },
     },
     orderBy: orderBy.length > 0 ? orderBy : [{ createdAt: "desc" }],
-    skip: (page - 1) * perPage,
-    take: perPage,
+    ...(perPage ? { take: perPage, skip: (page - 1) * perPage } : {}),
   });
 
   return {
     data: rfqs,
     total,
-    pageCount: Math.ceil(total / perPage),
+    pageCount: Math.ceil(total / (perPage ?? 40)),
   };
 };
 

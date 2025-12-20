@@ -19,9 +19,6 @@ import { useState } from "react";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { MaskInput } from "@/components/ui/mask-input";
 
-import { createCompany } from "@/app/companies/_utils/create-company";
-import { createProject } from "@/app/projects/_utils/create-project";
-import { createPerson } from "@/app/people/_utils/create-person";
 import { useUploadFiles } from "better-upload/client";
 import { UploadDropzoneProgress } from "@/components/ui/upload-dropzone-progress";
 import { useCreateQuote, useUpdateQuote } from "./use-quotes";
@@ -32,10 +29,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useReadPeople } from "@/app/people/_components/use-people";
+import {
+  useCreatePerson,
+  useReadPeople,
+} from "@/app/people/_components/use-people";
 import { mapToSelectOptions } from "@/lib/utils";
-import { useReadCompanies } from "@/app/companies/_components/use-companies";
-import { useReadProjects } from "@/app/projects/_components/use-projects";
+import {
+  useCreateCompany,
+  useReadCompanies,
+} from "@/app/companies/_components/use-companies";
+import {
+  useCreateProject,
+  useReadProjects,
+} from "@/app/projects/_components/use-projects";
 import { CompanyType, PersonType } from "@/lib/enums";
 import {
   parseAsArrayOf,
@@ -49,6 +55,7 @@ import { getSortingStateParser } from "@/lib/parsers";
 import React from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCreateRfq, useReadRfqs } from "@/app/rfqs/_components/use-rfqs";
 
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);
@@ -78,6 +85,9 @@ const quoteFormSchema = z.object({
   clientName: z.string().trim().optional(),
   projectName: z.string().trim().optional(),
   contactPersonName: z.string().trim().optional(),
+  contactPersonPhone: z.string().trim().optional(),
+  contactPersonEmail: z.string().trim().optional(),
+  rfqId: z.string().trim().optional(),
 });
 
 export type QuoteForm = z.infer<typeof quoteFormSchema>;
@@ -100,6 +110,7 @@ export function QuoteForm({
   const updateQuote = useUpdateQuote();
   const queryClient = useQueryClient();
 
+  const [isNewContactPerson, setIsNewContactPerson] = useState(false);
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
   const [existingObjectKeys, setExistingObjectKeys] = useState(
     defaultValues?.objectKeys ?? []
@@ -174,10 +185,12 @@ export function QuoteForm({
       clientId: "",
       projectId: "",
       contactPersonId: "",
+      contactPersonPhone: "",
+      contactPersonEmail: "",
       supplierId: "",
       approximateSiteDeliveryDate: "",
-      quoteOutcome: undefined,
       objectKeys: [],
+      rfqId: "",
     },
   });
 
@@ -190,17 +203,28 @@ export function QuoteForm({
     type: [PersonType.CONTACT_PERSON],
   });
   const { data: clients } = useReadCompanies({
-    type: [CompanyType.CLIENT],
+    type: [CompanyType.CLIENT, CompanyType.CONSULTANT, CompanyType.CONTRACTOR],
   });
   const { data: suppliers } = useReadCompanies({
     type: [CompanyType.SUPPLIER],
   });
+  const { data: rfqs } = useReadRfqs();
+
+  const { mutate: createPerson } = useCreatePerson();
+  const { mutate: createCompany } = useCreateCompany();
+  const { mutate: createProject } = useCreateProject();
 
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
   const contactPersonsInitialOptions = mapToSelectOptions(contactPersons?.data);
   const authorsInitialOptions = mapToSelectOptions(authors?.data);
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
+  const rfqsInitialOptions = mapToSelectOptions(
+    rfqs?.data?.map((rfq) => ({
+      ...rfq,
+      name: rfq.referenceNumber,
+    }))
+  );
 
   const { control: uploadControl } = useUploadFiles({
     route: "form",
@@ -295,12 +319,11 @@ export function QuoteForm({
                       initialOptions={authorsInitialOptions}
                       disableCreateNew={true}
                       createNewFunction={async (value) => {
-                        const author = await createPerson({
+                        createPerson({
                           id: value.id,
                           name: value.name,
                           type: PersonType.AUTHOR,
                         });
-                        return author.id;
                       }}
                       label="author"
                       value={field.value ?? ""}
@@ -386,16 +409,25 @@ export function QuoteForm({
                     <CreateNewCombobox
                       initialOptions={clientsInitialOptions}
                       createNewFunction={async (value) => {
-                        const client = await createCompany({
-                          id: value.id,
-                          name: value.name,
-                          type: CompanyType.CLIENT,
-                        });
-                        return client.id;
+                        try {
+                          createCompany({
+                            id: value.id,
+                            name: value.name,
+                            type: CompanyType.CLIENT,
+                          });
+                        } catch (error) {
+                          form.setError("clientId", {
+                            message: "Client with this name already exists",
+                          });
+                          return null;
+                        }
                       }}
                       label="client"
                       value={field.value ?? ""}
-                      onValueChange={(value) => field.onChange(value)}
+                      onValueChange={(value) => {
+                        form.clearErrors("clientId");
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -412,17 +444,24 @@ export function QuoteForm({
                     <CreateNewCombobox
                       initialOptions={suppliersInitialOptions}
                       createNewFunction={async (value) => {
-                        const supplier = await createCompany({
-                          id: value.id,
-                          name: value.name,
-                          type: CompanyType.SUPPLIER,
-                        });
-
-                        return supplier.id;
+                        try {
+                          createCompany({
+                            id: value.id,
+                            name: value.name,
+                            type: CompanyType.SUPPLIER,
+                          });
+                        } catch (error) {
+                          form.setError("supplierId", {
+                            message: "Supplier with this name already exists",
+                          });
+                        }
                       }}
                       label="supplier"
                       value={field.value ?? ""}
-                      onValueChange={(value) => field.onChange(value)}
+                      onValueChange={(value) => {
+                        form.clearErrors("supplierId");
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -443,8 +482,7 @@ export function QuoteForm({
                           ...value,
                           companyId: form.getValues("clientId") ?? undefined,
                         };
-                        const project = await createProject(projectWithCompany);
-                        return project.id;
+                        createProject(projectWithCompany);
                       }}
                       label="project"
                       value={field.value ?? ""}
@@ -465,13 +503,17 @@ export function QuoteForm({
                     <CreateNewCombobox
                       initialOptions={contactPersonsInitialOptions}
                       createNewFunction={async (value) => {
+                        setIsNewContactPerson(true);
+                        contactPersonsInitialOptions.push({
+                          value: value.id,
+                          label: value.name,
+                        });
                         const withCompany = {
                           ...value,
                           companyId: form.getValues("clientId") ?? undefined,
                           type: PersonType.CONTACT_PERSON,
                         };
-                        const contactPerson = await createPerson(withCompany);
-                        return contactPerson.id;
+                        createPerson(withCompany);
                       }}
                       label="contact person"
                       value={field.value ?? ""}
@@ -482,6 +524,46 @@ export function QuoteForm({
                 </FormItem>
               )}
             />
+            {isNewContactPerson && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="contactPersonPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Contact Person Phone
+                        <span className="text-muted-foreground">
+                          (Optional)
+                        </span>{" "}
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="contactPersonEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Contact Person Email
+                        <span className="text-muted-foreground">
+                          (Optional)
+                        </span>{" "}
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <FormField
               control={form.control}
               name="approximateSiteDeliveryDate"
@@ -502,37 +584,61 @@ export function QuoteForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="quoteOutcome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Quote Outcome{" "}
-                    <span className="text-muted-foreground">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value || undefined}
-                      onValueChange={(value) =>
-                        field.onChange(value || undefined)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select quote outcome" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="WON">Won</SelectItem>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="LOST">Lost</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {mode === "edit" && (
+              <FormField
+                control={form.control}
+                name="quoteOutcome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Quote Outcome{" "}
+                      <span className="text-muted-foreground">(Optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={(value) =>
+                          field.onChange(value || undefined)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select quote outcome" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="WON">Won</SelectItem>
+                          <SelectItem value="PENDING">Pending</SelectItem>
+                          <SelectItem value="LOST">Lost</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
+          <FormField
+            control={form.control}
+            name="rfqId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RFQ</FormLabel>
+                <FormControl>
+                  <CreateNewCombobox
+                    initialOptions={rfqsInitialOptions}
+                    disableCreateNew={true}
+                    createNewFunction={async (value) => {
+                      console.log("cannot create new RFQ from quote form");
+                    }}
+                    label="rfq"
+                    value={field.value ?? ""}
+                    onValueChange={(value) => field.onChange(value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -556,7 +662,6 @@ export function QuoteForm({
             )}
           />
         </FieldGroup>
-
         <FormField
           control={form.control}
           name="objectKeys"
@@ -571,64 +676,66 @@ export function QuoteForm({
           )}
         />
 
-        <div>
-          <label className="text-sm font-medium text-muted-foreground mb-3 block">
-            Related Files
-          </label>
-          {existingObjectKeys.length > 0 ? (
-            <div className="space-y-2">
-              {existingObjectKeys.map((objectKey, index) => (
-                <div
-                  key={objectKey}
-                  className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10 text-primary">
-                      <FileText className="size-4" />
+        {mode === "edit" && (
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-3 block">
+              Related Files
+            </label>
+            {existingObjectKeys.length > 0 ? (
+              <div className="space-y-2">
+                {existingObjectKeys.map((objectKey, index) => (
+                  <div
+                    key={objectKey}
+                    className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10 text-primary">
+                        <FileText className="size-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          File {index + 1}
+                        </p>
+                        <p className="text-xs text-muted-foreground text-wrap truncate">
+                          {objectKey}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        File {index + 1}
-                      </p>
-                      <p className="text-xs text-muted-foreground text-wrap truncate">
-                        {objectKey}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button asChild variant="outline" size="sm">
-                      <a
-                        href={`/api/upload/${encodeURIComponent(objectKey)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        View
-                      </a>
-                    </Button>
-                    {quoteId && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={deletingKey === objectKey}
-                        onClick={() => handleDeleteFile(objectKey)}
-                      >
-                        {deletingKey === objectKey ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : null}
-                        Delete
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={`/api/upload/${encodeURIComponent(objectKey)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          View
+                        </a>
                       </Button>
-                    )}
+                      {quoteId && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={deletingKey === objectKey}
+                          onClick={() => handleDeleteFile(objectKey)}
+                        >
+                          {deletingKey === objectKey ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
+                          Delete
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No files associated with this quote.
-            </p>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No files associated with this quote.
+              </p>
+            )}
+          </div>
+        )}
 
         <Button
           type="submit"
@@ -651,7 +758,6 @@ function useGenerateCreateQuote() {
     perPage: parseAsInteger.withDefault(40),
   });
 
-  // Read URL query state for sorting
   const columnIds = React.useMemo(
     () =>
       new Set([
@@ -668,12 +774,11 @@ function useGenerateCreateQuote() {
       ]),
     []
   );
-
   const [sort] = useQueryState(
     "sort",
     getSortingStateParser<Quote>(columnIds).withDefault([])
   );
-  // Read URL query state for filters
+
   const [filters] = useQueryStates({
     date: parseAsString,
     referenceNumber: parseAsString.withDefault(""),
