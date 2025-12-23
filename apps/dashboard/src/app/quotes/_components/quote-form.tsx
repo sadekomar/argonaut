@@ -622,7 +622,9 @@ export function QuoteForm({
             name="rfqId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>RFQ</FormLabel>
+                <FormLabel>
+                  RFQ <span className="text-muted-foreground">(Optional)</span>
+                </FormLabel>
                 <FormControl>
                   <CreateNewCombobox
                     initialOptions={rfqsInitialOptions}

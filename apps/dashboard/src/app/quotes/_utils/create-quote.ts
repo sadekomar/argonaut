@@ -68,11 +68,13 @@ export async function createQuote(data: QuoteForm) {
   try {
     await prisma.quote.create({
       data: {
-        Rfq: {
-          connect: {
-            id: rfqId,
+        ...(rfqId && {
+          Rfq: {
+            connect: {
+              id: rfqId,
+            },
           },
-        },
+        }),
         referenceNumber: referenceNumber,
         value: Number(value),
         date: new Date(date),
