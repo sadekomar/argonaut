@@ -12,12 +12,7 @@ const protectedRoutes = [
   "/registrations",
   "/resources",
 ];
-const publicRoutes = [
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
-];
+const publicRoutes = ["/login", "/forgot-password", "/reset-password"];
 
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;

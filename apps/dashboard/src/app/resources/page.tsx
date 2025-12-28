@@ -2,18 +2,65 @@ import { readdir } from "fs/promises";
 import { join } from "path";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, FolderOpen } from "lucide-react";
 
-async function getPdfFiles() {
+type ResourceItem = {
+  name: string;
+  filename: string;
+  path: string;
+};
+
+type ResourceCategory = {
+  title: string;
+  items: ResourceItem[];
+};
+
+async function getResources(): Promise<ResourceCategory[]> {
   const resourcesDir = join(process.cwd(), "src/app/resources");
-  const files = await readdir(resourcesDir);
+  const entries = await readdir(resourcesDir, { withFileTypes: true });
 
-  // Filter only PDF files
-  return files.filter((file) => file.endsWith(".pdf"));
+  const categories: ResourceCategory[] = [];
+  const rootItems: ResourceItem[] = [];
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const dirPath = join(resourcesDir, entry.name);
+      const files = await readdir(dirPath);
+      const pdfs = files.filter((f) => f.toLowerCase().endsWith(".pdf"));
+
+      if (pdfs.length > 0) {
+        categories.push({
+          title: entry.name,
+          items: pdfs.map((f) => ({
+            name: f.replace(/\.pdf$/i, ""),
+            filename: f,
+            path: `${entry.name}/${f}`,
+          })),
+        });
+      }
+    } else if (entry.isFile() && entry.name.toLowerCase().endsWith(".pdf")) {
+      rootItems.push({
+        name: entry.name.replace(/\.pdf$/i, ""),
+        filename: entry.name,
+        path: entry.name,
+      });
+    }
+  }
+
+  categories.sort((a, b) => a.title.localeCompare(b.title));
+
+  if (rootItems.length > 0) {
+    categories.push({
+      title: "Other Resources",
+      items: rootItems,
+    });
+  }
+
+  return categories;
 }
 
 export default async function ResourcesPage() {
-  const pdfFiles = await getPdfFiles();
+  const categories = await getResources();
 
   return (
     <main className="flex-1 p-8">
@@ -24,50 +71,63 @@ export default async function ResourcesPage() {
         </p>
       </div>
 
-      <div className="grid gap-4">
-        {pdfFiles.length === 0 ? (
+      <div className="space-y-10">
+        {categories.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground text-center py-8">
-                No PDF files found.
+                No resources found.
               </p>
             </CardContent>
           </Card>
         ) : (
-          pdfFiles.map((filename) => (
-            <Card key={filename}>
-              <CardContent>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="flex-shrink-0 p-3 rounded-lg bg-primary/10 text-primary">
-                      <FileText className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg truncate">
-                        {filename.replace(".pdf", "")}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        PDF Document
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="flex-shrink-0"
-                  >
-                    <a
-                      href={`/api/resources/${encodeURIComponent(filename)}`}
-                      download={filename}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          categories.map((category) => (
+            <div key={category.title}>
+              <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <FolderOpen className="h-6 w-6 text-muted-foreground" />
+                {category.title}
+              </h2>
+              <div className="grid gap-4">
+                {category.items.map((item) => (
+                  <Card key={item.path}>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className="flex-shrink-0 p-3 rounded-lg bg-primary/10 text-primary">
+                            <FileText className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg truncate">
+                              {item.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              PDF Document
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                        >
+                          <a
+                            href={`/api/resources/${item.path
+                              .split("/")
+                              .map(encodeURIComponent)
+                              .join("/")}`}
+                            download={item.filename}
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           ))
         )}
       </div>
