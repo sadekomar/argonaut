@@ -40,6 +40,7 @@ import { useDeleteProject } from "./use-projects";
 import { UpdateProjectModal } from "./update-project-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import type { ProjectStatus } from "@repo/db";
+import Link from "next/link";
 
 interface Project {
   id: string;
@@ -246,6 +247,11 @@ export function ProjectsTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Link href={`/quotes?projectId=${project.id}`}>
+                  View Quotes
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedProject(project);

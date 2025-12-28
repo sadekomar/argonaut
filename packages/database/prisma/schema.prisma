@@ -262,6 +262,7 @@ model Person {
   companiesResponsibleFor Company[]      @relation("ResponsibleSalesPerson")
 
   // --- INDEXES ---
+  @@unique([name, companyId])
   @@index([companyId])
   @@index([name]) // For search/autocomplete
   @@index([email]) // For search
