@@ -248,9 +248,7 @@ export function ProjectsTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
-                <Link href={`/quotes?projectId=${project.id}`}>
-                  View Quotes
-                </Link>
+                <Link href={`/quotes?project=${project.id}`}>View Quotes</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
