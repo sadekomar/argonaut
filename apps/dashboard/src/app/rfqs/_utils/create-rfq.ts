@@ -67,9 +67,16 @@ export async function createRfq(data: RfqForm) {
     throw new Error(response["error-type"]);
   }
 
-  const serialNumber = await prisma.rfq.count();
+  const latestRfq = await prisma.rfq.findFirst({
+    orderBy: {
+      referenceNumber: "desc",
+    },
+  });
+  const latestReferenceNumber = parseInt(
+    latestRfq?.referenceNumber?.match(/(?<=ARGO-RFQ-)\d+(?=-)/)?.[0] ?? "0"
+  );
   const referenceNumber = generateRfqReferenceNumber(
-    serialNumber,
+    latestReferenceNumber + 1,
     date || new Date()
   );
   const rate = await getRate(currency);

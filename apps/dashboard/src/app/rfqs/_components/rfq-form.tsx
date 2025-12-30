@@ -293,6 +293,7 @@ export function RfqForm({
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
+                        setCurrentRfqStatus(value as RfqStatus);
                       }}
                     >
                       <SelectTrigger className="w-full">
@@ -312,81 +313,80 @@ export function RfqForm({
                 </FormItem>
               )}
             />
-            {mode === "edit" &&
-              form.getValues("rfqStatus") === RfqStatus.RECEIVED && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="rfqReceivedAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Received At</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="currency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Currency</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value || ""}
-                            onValueChange={(value) => {
-                              setCurrentCurrency(value as Currency);
-                              field.onChange(value);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="EGP">EGP</SelectItem>
-                              <SelectItem value="USD">USD</SelectItem>
-                              <SelectItem value="EUR">EUR</SelectItem>
-                              <SelectItem value="GBP">GBP</SelectItem>
-                              <SelectItem value="SAR">SAR</SelectItem>
-                              <SelectItem value="AED">AED</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="value"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Value
-                          <span className="text-muted-foreground">
-                            (Optional)
-                          </span>
-                        </FormLabel>
-                        <FormControl>
-                          <MaskInput
-                            mask="currency"
-                            currency={currentCurrency}
-                            placeholder="Enter value"
-                            value={field.value}
-                            onValueChange={(_maskedValue, unmaskedValue) => {
-                              field.onChange(unmaskedValue);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+            {currentRfqStatus === RfqStatus.RECEIVED && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="rfqReceivedAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Received At</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Currency</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={(value) => {
+                            setCurrentCurrency(value as Currency);
+                            field.onChange(value);
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="EGP">EGP</SelectItem>
+                            <SelectItem value="USD">USD</SelectItem>
+                            <SelectItem value="EUR">EUR</SelectItem>
+                            <SelectItem value="GBP">GBP</SelectItem>
+                            <SelectItem value="SAR">SAR</SelectItem>
+                            <SelectItem value="AED">AED</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Value
+                        <span className="text-muted-foreground">
+                          (Optional)
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <MaskInput
+                          mask="currency"
+                          currency={currentCurrency}
+                          placeholder="Enter value"
+                          value={field.value}
+                          onValueChange={(_maskedValue, unmaskedValue) => {
+                            field.onChange(unmaskedValue);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </div>
 
           <FormField
