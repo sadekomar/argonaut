@@ -88,6 +88,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login" || pathname === "/signup";
   const { data: session } = authClient.useSession();
+  const [isAlunaut, setIsAlunaut] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsAlunaut(window.location.hostname === "crm.alunaut.com.eg");
+    }
+  }, []);
 
   // Get user data from session or use fallback
   const user = React.useMemo(() => {
@@ -113,14 +120,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           href="/"
           className="flex items-center justify-center min-h-[2.5rem] group-data-[collapsible=icon]:hidden"
         >
-          <Image
-            src="/argonaut-horizontal-small.webp"
-            alt="Argonaut"
-            width={140}
-            height={40}
-            className="h-8 w-auto object-contain"
-            priority
-          />
+          {isAlunaut ? (
+            <Image
+              src="/alunaut.png"
+              alt="Alunaut"
+              width={140}
+              height={40}
+              className="h-8 w-auto object-contain"
+              priority
+            />
+          ) : (
+            <Image
+              src="/argonaut-horizontal-small.webp"
+              alt="Argonaut"
+              width={140}
+              height={40}
+              className="h-8 w-auto object-contain"
+              priority
+            />
+          )}
         </Link>
       </SidebarHeader>
       <SidebarContent>
