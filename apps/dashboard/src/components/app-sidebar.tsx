@@ -30,7 +30,7 @@ import { authClient } from "@/lib/auth-client";
 const data = {
   teams: [
     {
-      name: "Argonaut Engineering",
+      name: "Engineering",
       logo: Building2,
       plan: "Enterprise",
     },
