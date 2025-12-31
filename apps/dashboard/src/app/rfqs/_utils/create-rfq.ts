@@ -34,7 +34,7 @@ export type ExchangeRateResponse =
 function generateRfqReferenceNumber(serialNumber: number, date: Date | string) {
   // Serial number should start with 1 and have three digits (e.g. 1001, 1002, ..., 1999)
   const padded = String(serialNumber).padStart(3, "0");
-  const serial = `1${padded}`;
+  const serial = `${padded}`;
   const d = new Date(date);
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
