@@ -24,7 +24,9 @@ import { createClient } from "@/app/companies/_utils/create-company";
 const personTypeEnum = z.enum(["AUTHOR", "CONTACT_PERSON", "INTERNAL"]);
 
 const addPersonSchema = z.object({
-  name: z.string().trim().min(1, { message: "Name is required" }),
+  firstName: z.string().trim().min(1, { message: "First name is required" }),
+  lastName: z.string().trim().min(1, { message: "Last name is required" }),
+  title: z.string().trim().optional().or(z.literal("")),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().trim().optional(),
   companyId: z.string().trim().optional(),
@@ -39,7 +41,9 @@ export function AddPersonForm() {
   const form = useForm<AddPersonForm>({
     resolver: zodResolver(addPersonSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
+      title: "",
       email: "",
       phone: "",
       companyId: "",
@@ -50,7 +54,9 @@ export function AddPersonForm() {
   const submitPerson = async (data: AddPersonForm) => {
     try {
       await createPerson({
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        title: data.title || undefined,
         email: data.email || undefined,
         phone: data.phone || undefined,
         companyId: data.companyId || undefined,
@@ -79,12 +85,38 @@ export function AddPersonForm() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="name"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>First Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter name" {...field} />
+                    <Input placeholder="Enter first name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter last name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter title" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

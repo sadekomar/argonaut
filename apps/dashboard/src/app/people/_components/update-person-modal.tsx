@@ -7,19 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PersonForm } from "./person-form";
+import { Person } from "../persons-table";
 
 type PersonType = "AUTHOR" | "CONTACT_PERSON" | "INTERNAL";
-
-interface Person {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  type: PersonType;
-  companyId: string | null;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
 
 interface UpdatePersonModalProps {
   open: boolean;
@@ -40,11 +30,12 @@ export function UpdatePersonModal({
         </DialogHeader>
         <PersonForm
           defaultValues={{
-            name: person.name,
+            firstName: person.firstName || "",
+            lastName: person.lastName || "",
             email: person.email || "",
             phone: person.phone || "",
             companyId: person.companyId || "",
-            type: person.type,
+            type: person.type as PersonType,
           }}
           personId={person.id}
           onSubmit={() => {

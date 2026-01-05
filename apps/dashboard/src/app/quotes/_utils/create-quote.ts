@@ -46,10 +46,11 @@ export async function createQuote(data: QuoteForm) {
     objectKeys,
     contactPersonPhone,
     contactPersonEmail,
+    contactPersonTitle,
     rfqId,
   } = data;
 
-  if (contactPersonPhone || contactPersonEmail) {
+  if (contactPersonPhone || contactPersonEmail || contactPersonTitle) {
     // update contact person fields if supplied
     await prisma.person.update({
       where: { id: contactPersonId },
@@ -57,6 +58,7 @@ export async function createQuote(data: QuoteForm) {
         phone: contactPersonPhone,
         email: contactPersonEmail,
         companyId: clientId,
+        title: contactPersonTitle,
       },
     });
   }

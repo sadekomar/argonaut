@@ -47,12 +47,14 @@ import { mapToSelectOptions } from "@/lib/utils";
 
 type PersonType = "AUTHOR" | "CONTACT_PERSON" | "INTERNAL";
 
-interface Person {
+export interface Person {
   id: string;
-  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  title: string | null;
   email: string | null;
   phone: string | null;
-  type: PersonType;
+  type: string | null;
   companyId: string | null;
   company: {
     id: string;
@@ -84,7 +86,7 @@ const getTypeBadgeVariant = (type: PersonType) => {
   }
 };
 
-export function PeopleTable() {
+export function PersonsTable() {
   const deletePerson = useDeletePerson();
 
   const [selectedPerson, setSelectedPerson] = useState<Person>();
@@ -98,7 +100,16 @@ export function PeopleTable() {
 
   // Read URL query state for sorting
   const columnIds = React.useMemo(
-    () => new Set(["name", "email", "phone", "company", "type", "createdAt"]),
+    () =>
+      new Set([
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "company",
+        "type",
+        "createdAt",
+      ]),
     []
   );
   const [sort] = useQueryState(
@@ -110,7 +121,8 @@ export function PeopleTable() {
 
   // Read URL query state for filters
   const [filters] = useQueryStates({
-    name: parseAsString.withDefault(""),
+    firstName: parseAsString.withDefault(""),
+    lastName: parseAsString.withDefault(""),
     email: parseAsString.withDefault(""),
     phone: parseAsString.withDefault(""),
     company: parseAsArrayOf(parseAsString).withDefault([]),
@@ -128,7 +140,8 @@ export function PeopleTable() {
         page: pagination.page,
         perPage: pagination.perPage,
         sort: sort as Array<{ id: string; desc: boolean }>,
-        name: filters.name || undefined,
+        firstName: filters.firstName || undefined,
+        lastName: filters.lastName || undefined,
         email: filters.email || undefined,
         phone: filters.phone || undefined,
         company: filters.company.length > 0 ? filters.company : undefined,
@@ -164,20 +177,39 @@ export function PeopleTable() {
       enableSorting: false,
       enableHiding: false,
     }),
-    columnHelper.accessor("name", {
-      id: "name",
+    columnHelper.accessor("firstName", {
+      id: "firstName",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Name" />
+        <DataTableColumnHeader column={column} label="First Name" />
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-1.5">
           <User className="size-4 text-muted-foreground" />
-          <span className="font-medium">{row.original.name}</span>
+          <span className="font-medium">{row.original.firstName}</span>
         </div>
       ),
       meta: {
-        label: "Name",
-        placeholder: "Search names...",
+        label: "First Name",
+        placeholder: "Search first names...",
+        variant: "text",
+        icon: User,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("lastName", {
+      id: "lastName",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Last Name" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5">
+          <User className="size-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.lastName}</span>
+        </div>
+      ),
+      meta: {
+        label: "Last Name",
+        placeholder: "Search last names...",
         variant: "text",
         icon: User,
       },
@@ -203,6 +235,29 @@ export function PeopleTable() {
         placeholder: "Search emails...",
         variant: "text",
         icon: Mail,
+      },
+      enableColumnFilter: true,
+    }),
+    columnHelper.accessor("title", {
+      id: "title",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} label="Title" />
+      ),
+      cell: ({ row }) => {
+        const title = row.original.title;
+        if (!title) return <span className="text-muted-foreground">N/A</span>;
+        return (
+          <div className="flex items-center gap-1.5">
+            <User className="size-4 text-muted-foreground" />
+            {title}
+          </div>
+        );
+      },
+      meta: {
+        label: "Title",
+        placeholder: "Search titles...",
+        variant: "text",
+        icon: User,
       },
       enableColumnFilter: true,
     }),
@@ -272,7 +327,7 @@ export function PeopleTable() {
             variant: "outline" as const,
           },
         };
-        const config = typeConfig[type];
+        const config = typeConfig[type as PersonType];
         const Icon = config.icon;
 
         return (

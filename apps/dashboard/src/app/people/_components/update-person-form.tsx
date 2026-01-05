@@ -26,7 +26,8 @@ import { useReadPeople } from "./use-people";
 const personTypeEnum = z.enum(["AUTHOR", "CONTACT_PERSON", "INTERNAL"]);
 
 const updatePersonSchema = z.object({
-  name: z.string().trim().min(1, { message: "Name is required" }),
+  firstName: z.string().trim().min(1, { message: "First name is required" }),
+  lastName: z.string().trim().min(1, { message: "Last name is required" }),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().trim().optional(),
   companyId: z.string().trim().optional(),
@@ -53,7 +54,8 @@ export function UpdatePersonForm({
   const form = useForm<UpdatePersonForm>({
     resolver: zodResolver(updatePersonSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       companyId: "",
@@ -64,8 +66,13 @@ export function UpdatePersonForm({
   // Pre-populate form when person data is loaded
   useEffect(() => {
     if (person) {
+      const firstName = person.firstName || person.name.split(" ")[0] || "";
+      const lastName =
+        person.lastName || person.name.split(" ").slice(1).join(" ") || "";
+
       form.reset({
-        name: person.name,
+        firstName,
+        lastName,
         email: person.email || "",
         phone: person.phone || "",
         companyId: person.companyId || "",
@@ -78,7 +85,8 @@ export function UpdatePersonForm({
     try {
       await updatePerson({
         id: personId,
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email || undefined,
         phone: data.phone || undefined,
         companyId: data.companyId || undefined,
@@ -115,12 +123,25 @@ export function UpdatePersonForm({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="name"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>First Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter name" {...field} />
+                    <Input placeholder="Enter first name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter last name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

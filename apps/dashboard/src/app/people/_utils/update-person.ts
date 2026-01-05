@@ -6,7 +6,9 @@ import type { PersonType } from "@repo/db";
 
 export interface UpdatePersonForm {
   id: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
   email?: string;
   phone?: string;
   companyId?: string;
@@ -14,13 +16,21 @@ export interface UpdatePersonForm {
 }
 
 export async function updatePerson(data: UpdatePersonForm) {
-  const { id, name, email, phone, companyId, type } = data;
+  const { id, firstName, lastName, title, email, phone, companyId, type } =
+    data;
 
   try {
     const updateData: Prisma.PersonUpdateInput = {};
 
-    if (name !== undefined) {
-      updateData.name = name;
+    if (firstName !== undefined) {
+      updateData.firstName = firstName;
+    }
+    if (lastName !== undefined) {
+      updateData.lastName = lastName;
+    }
+
+    if (title !== undefined) {
+      updateData.title = title || null;
     }
 
     if (email !== undefined) {

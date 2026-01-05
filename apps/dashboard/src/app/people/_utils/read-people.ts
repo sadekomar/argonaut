@@ -7,7 +7,8 @@ interface ReadPeopleParams {
   page?: number;
   perPage?: number;
   sort?: Array<{ id: string; desc: boolean }>;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   company?: string[];
@@ -19,7 +20,8 @@ export const readPeople = async (params: ReadPeopleParams = {}) => {
     page = 1,
     perPage = 10,
     sort = [{ id: "createdAt", desc: true }],
-    name,
+    firstName,
+    lastName,
     email,
     phone,
     company,
@@ -29,9 +31,16 @@ export const readPeople = async (params: ReadPeopleParams = {}) => {
   // Build where clause from filters
   const where: Prisma.PersonWhereInput = {};
 
-  if (name) {
-    where.name = {
-      contains: name,
+  if (firstName) {
+    where.firstName = {
+      contains: firstName,
+      mode: "insensitive",
+    };
+  }
+
+  if (lastName) {
+    where.lastName = {
+      contains: lastName,
       mode: "insensitive",
     };
   }
@@ -68,8 +77,10 @@ export const readPeople = async (params: ReadPeopleParams = {}) => {
       const order = sortItem.desc ? "desc" : "asc";
 
       switch (sortItem.id) {
-        case "name":
-          return { name: order };
+        case "firstName":
+          return { firstName: order };
+        case "lastName":
+          return { lastName: order };
         case "email":
           return { email: order };
         case "phone":

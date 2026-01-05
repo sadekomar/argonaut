@@ -85,6 +85,7 @@ const quoteFormSchema = z.object({
   clientName: z.string().trim().optional(),
   projectName: z.string().trim().optional(),
   contactPersonName: z.string().trim().optional(),
+  contactPersonTitle: z.string().trim().optional(),
   contactPersonPhone: z.string().trim().optional(),
   contactPersonEmail: z.string().trim().optional(),
   rfqId: z.string().trim().optional(),
@@ -186,6 +187,7 @@ export function QuoteForm({
       projectId: "",
       contactPersonId: "",
       contactPersonPhone: "",
+      contactPersonTitle: "",
       contactPersonEmail: "",
       supplierId: "",
       approximateSiteDeliveryDate: "",
@@ -215,8 +217,18 @@ export function QuoteForm({
   const { mutate: createProject } = useCreateProject();
 
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
-  const contactPersonsInitialOptions = mapToSelectOptions(contactPersons?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const contactPersonsInitialOptions = mapToSelectOptions(
+    contactPersons?.data?.map((contactPerson) => ({
+      id: contactPerson.id,
+      name: `${contactPerson.firstName} ${contactPerson.lastName}`.trim(),
+    }))
+  );
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author.firstName} ${author.lastName}`.trim(),
+    }))
+  );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
   const rfqsInitialOptions = mapToSelectOptions(
@@ -321,7 +333,8 @@ export function QuoteForm({
                       createNewFunction={async (value) => {
                         createPerson({
                           id: value.id,
-                          name: value.name,
+                          firstName: value.name.split(" ")[0],
+                          lastName: value.name.split(" ")[1],
                           type: PersonType.AUTHOR,
                         });
                       }}
@@ -504,14 +517,16 @@ export function QuoteForm({
                       initialOptions={contactPersonsInitialOptions}
                       createNewFunction={async (value) => {
                         setIsNewContactPerson(true);
-                        contactPersonsInitialOptions.push({
-                          value: value.id,
-                          label: value.name,
-                        });
+                        // contactPersonsInitialOptions.push({
+                        //   value: value.id,
+                        //   label: value.name,
+                        // });
                         const withCompany = {
                           ...value,
                           companyId: form.getValues("clientId") ?? undefined,
                           type: PersonType.CONTACT_PERSON,
+                          firstName: value.name.split(" ")[0],
+                          lastName: value.name.split(" ")[1],
                         };
                         createPerson(withCompany);
                       }}
@@ -526,6 +541,24 @@ export function QuoteForm({
             />
             {isNewContactPerson && (
               <>
+                <FormField
+                  control={form.control}
+                  name="contactPersonTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Contact Person Title
+                        <span className="text-muted-foreground">
+                          (Optional)
+                        </span>{" "}
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="contactPersonPhone"

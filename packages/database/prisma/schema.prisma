@@ -242,7 +242,7 @@ enum PersonType {
 
 model Person {
   id                      String         @id @default(uuid())
-  name                    String
+  name                    String?
   firstName               String?
   lastName                String?
   title                   String?

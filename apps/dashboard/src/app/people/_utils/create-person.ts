@@ -5,7 +5,9 @@ import { PersonType } from "@repo/db";
 
 export interface CreatePersonForm {
   id?: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
   email?: string;
   phone?: string;
   companyId?: string;
@@ -13,15 +15,20 @@ export interface CreatePersonForm {
 }
 
 export async function createPerson(data: CreatePersonForm) {
-  const { id, name, email, phone, companyId, type } = data;
+  const { id, firstName, lastName, title, email, phone, companyId, type } =
+    data;
 
   console.log("createPerson", data);
+
+  const finalName = `${firstName} ${lastName}`.trim();
 
   try {
     const person = await prisma.person.create({
       data: {
         id,
-        name,
+        firstName: firstName,
+        lastName: lastName,
+        title: title || null,
         email: email || null,
         phone: phone || null,
         companyId: companyId || null,

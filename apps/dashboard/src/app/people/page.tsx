@@ -1,7 +1,7 @@
 "use client";
 
 import { useReadPeople, useGetPeopleMetadata } from "./_components/use-people";
-import { PeopleTable } from "./people-table";
+import { PersonsTable } from "./persons-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddPersonModal } from "./_components/add-person-modal";
@@ -84,7 +84,7 @@ export default function PeopleAllPage() {
             </CardHeader>
             <CardContent>
               <Suspense>
-                <PeopleTable />
+                <PersonsTable />
               </Suspense>
             </CardContent>
           </Card>

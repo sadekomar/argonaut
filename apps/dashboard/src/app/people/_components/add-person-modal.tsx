@@ -32,7 +32,9 @@ export function AddPersonModal() {
         </DialogHeader>
         <PersonForm
           defaultValues={{
-            name: "",
+            firstName: "",
+            lastName: "",
+            title: "",
             email: "",
             phone: "",
             companyId: "",
