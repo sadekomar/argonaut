@@ -31,6 +31,7 @@ export type ExchangeRateResponse =
   | ExchangeRateErrorResponse;
 
 // ARGO-RFQ-1xxx-mm-yyyy
+// ALU-RFQ-1xxx-mm-yyyy
 function generateRfqReferenceNumber(serialNumber: number, date: Date | string) {
   // Serial number should start with 1 and have three digits (e.g. 1001, 1002, ..., 1999)
   const padded = String(serialNumber).padStart(3, "0");

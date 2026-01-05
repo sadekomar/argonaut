@@ -55,7 +55,7 @@ import { getSortingStateParser } from "@/lib/parsers";
 import React from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCreateRfq, useReadRfqs } from "@/app/rfqs/_components/use-rfqs";
+import { useReadRfqs } from "@/app/rfqs/_components/use-rfqs";
 
 const currencyEnum = z.enum(["EGP", "USD", "EUR", "GBP", "SAR", "AED"]);
 const quoteOutcomeEnum = z.enum(["WON", "PENDING", "LOST"]);

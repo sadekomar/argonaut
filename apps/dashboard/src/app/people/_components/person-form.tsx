@@ -19,7 +19,8 @@ import { useCreatePerson, useUpdatePerson } from "./use-people";
 import CreateNewCombobox from "@/components/create-new-combobox";
 import { useQuery } from "@tanstack/react-query";
 import { readAllCompanies } from "../../registrations/_utils/read-companies";
-import { createClient } from "@/app/companies/_utils/create-company";
+import { useCreateCompany } from "@/app/companies/_components/use-companies";
+import { CompanyType } from "@/lib/enums";
 
 const personTypeEnum = z.enum(["AUTHOR", "CONTACT_PERSON", "INTERNAL"]);
 
@@ -50,8 +51,11 @@ export function PersonForm({
   onSubmit: () => void;
 }) {
   const mode = personId ? "edit" : "create";
-  const { mutateAsync: createPerson } = useCreatePerson();
-  const { mutateAsync: updatePerson } = useUpdatePerson();
+  const { mutateAsync: createPerson, isPending: isCreating } =
+    useCreatePerson();
+  const { mutateAsync: updatePerson, isPending: isUpdating } =
+    useUpdatePerson();
+  const { mutate: createCompany } = useCreateCompany();
 
   const form = useForm<PersonForm>({
     resolver: zodResolver(personSchema),
@@ -164,9 +168,7 @@ export function PersonForm({
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       value={field.value}
                       onChange={(e) =>
-                        field.onChange(
-                          e.target.value as PersonForm["type"]
-                        )
+                        field.onChange(e.target.value as PersonForm["type"])
                       }
                     >
                       <option value="INTERNAL">Internal</option>
@@ -188,8 +190,11 @@ export function PersonForm({
                     <CreateNewCombobox
                       initialOptions={companies}
                       createNewFunction={async (value) => {
-                        const client = await createClient(value);
-                        return client.id;
+                        createCompany({
+                          id: value.id,
+                          name: value.name,
+                          type: CompanyType.CLIENT,
+                        });
                       }}
                       label="company"
                       value={field.value ?? ""}
@@ -205,10 +210,10 @@ export function PersonForm({
 
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || isCreating || isUpdating}
           className="w-full cursor-pointer"
         >
-          {form.formState.isSubmitting ? (
+          {form.formState.isSubmitting || isCreating || isUpdating ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             "Save Person"
@@ -218,4 +223,3 @@ export function PersonForm({
     </Form>
   );
 }
-

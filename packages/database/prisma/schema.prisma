@@ -243,6 +243,9 @@ enum PersonType {
 model Person {
   id                      String         @id @default(uuid())
   name                    String
+  firstName               String?
+  lastName                String?
+  title                   String?
   email                   String?
   phone                   String?
   // Internal sales person creating quotes

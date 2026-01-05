@@ -55,7 +55,9 @@ export const formatCurrency = (value: number, currency: string) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
+
 // 0: ARGO-Q-2xxx-mm-yyyy
+// 1: ALU-Q-2xxx-mm-yyyy
 export function generateQuoteReferenceNumber(
   serialNumber: number,
   date: Date | string
