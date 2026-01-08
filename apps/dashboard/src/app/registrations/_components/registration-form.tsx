@@ -110,7 +110,12 @@ export function RegistrationForm({
     type: [PersonType.AUTHOR],
   });
   const companiesInitialOptions = mapToSelectOptions(companies?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
 
   return (
     <Form {...form}>
@@ -154,7 +159,8 @@ export function RegistrationForm({
                       value={field.value}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value as RegistrationFormData["registrationStatus"]
+                          e.target
+                            .value as RegistrationFormData["registrationStatus"]
                         )
                       }
                     >
@@ -249,4 +255,3 @@ export function RegistrationForm({
     </Form>
   );
 }
-

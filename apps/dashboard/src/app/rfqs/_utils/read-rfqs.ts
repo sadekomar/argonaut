@@ -120,7 +120,7 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
       case "project":
         return { project: { name: order } };
       case "author":
-        return { author: { name: order } };
+        return { author: { firstName: order } };
       case "value":
         return { value: order };
       case "currency":
@@ -142,7 +142,8 @@ export const readRfqs = async (params: ReadRfqsParams = {}) => {
       author: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
       supplier: {
@@ -188,7 +189,8 @@ export const readRfq = async (id: string) => {
       author: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
       supplier: {

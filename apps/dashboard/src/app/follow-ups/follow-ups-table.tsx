@@ -54,7 +54,8 @@ export interface FollowUp {
   authorId: string;
   author: {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   };
   notes: string | null;
   createdAt: Date | string;
@@ -123,7 +124,12 @@ export function FollowUpsTable() {
     );
   }, [quotes?.data]);
 
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
 
   // Fetch follow-ups with server-side filtering, sorting, and pagination
   const { data, isLoading } = useQuery({
@@ -196,14 +202,15 @@ export function FollowUpsTable() {
       },
       {
         id: "author",
-        accessorFn: (row) => row.author.name,
+        accessorFn: (row) =>
+          `${row.author?.firstName} ${row?.author?.lastName}`,
         header: ({ column }: { column: Column<FollowUp, unknown> }) => (
           <DataTableColumnHeader column={column} label="Author" />
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
             <User className="size-4 text-muted-foreground" />
-            {row.original.author.name}
+            {row.original.author?.firstName} {row.original.author?.lastName}
           </div>
         ),
         meta: {

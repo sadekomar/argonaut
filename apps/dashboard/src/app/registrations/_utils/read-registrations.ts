@@ -56,10 +56,10 @@ export const readRegistrations = async (
 
   if (author) {
     where.author = {
-      name: {
-        contains: author,
-        mode: "insensitive",
-      },
+      OR: [
+        { firstName: { contains: author, mode: "insensitive" } },
+        { lastName: { contains: author, mode: "insensitive" } },
+      ],
     };
   }
 
@@ -102,7 +102,7 @@ export const readRegistrations = async (
         case "registrationStatus":
           return { registrationStatus: order };
         case "author":
-          return { author: { name: order } };
+          return { author: { firstName: order } };
         case "createdAt":
           return { createdAt: order };
         case "updatedAt":
@@ -130,7 +130,8 @@ export const readRegistrations = async (
       author: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
     },

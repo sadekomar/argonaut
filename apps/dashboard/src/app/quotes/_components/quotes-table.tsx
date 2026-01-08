@@ -71,7 +71,8 @@ export interface Quote {
   authorId: string;
   author: {
     id: string;
-    name: string;
+    firstName: string | null;
+    lastName: string | null;
   };
   supplierId: string | null;
   supplier: {
@@ -91,7 +92,8 @@ export interface Quote {
   contactPersonId: string;
   contactPerson: {
     id: string;
-    name: string;
+    firstName: string | null;
+    lastName: string | null;
   };
   quoteOutcome: QuoteOutcome;
   approximateSiteDeliveryDate: Date | string | null;
@@ -164,7 +166,12 @@ export function QuotesTable() {
   });
 
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
 
@@ -312,25 +319,28 @@ export function QuotesTable() {
       },
       enableColumnFilter: true,
     }),
-    columnHelper.accessor((row) => row.author.name, {
-      id: "author",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Author" />
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5">
-          <User className="size-4 text-muted-foreground" />
-          {row.original.author.name}
-        </div>
-      ),
-      meta: {
-        label: "Author",
-        variant: "multiSelect",
-        options: authorsInitialOptions,
-        icon: User,
-      },
-      enableColumnFilter: true,
-    }),
+    columnHelper.accessor(
+      (row) => `${row.author?.firstName} ${row.author?.lastName}`,
+      {
+        id: "author",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Author" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <User className="size-4 text-muted-foreground" />
+            {row.original.author?.firstName} {row.original.author?.lastName}
+          </div>
+        ),
+        meta: {
+          label: "Author",
+          variant: "multiSelect",
+          options: authorsInitialOptions,
+          icon: User,
+        },
+        enableColumnFilter: true,
+      }
+    ),
     columnHelper.accessor("value", {
       id: "value",
       header: ({ column }) => (

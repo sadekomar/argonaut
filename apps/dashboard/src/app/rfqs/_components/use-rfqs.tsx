@@ -30,7 +30,8 @@ export interface Rfq {
   authorId: string;
   author: {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   };
   supplierId: string;
   supplier: {

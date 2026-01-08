@@ -74,7 +74,8 @@ export const useCreateQuote = (params?: Parameters<typeof readQuotes>[0]) => {
           objectKeys: data.objectKeys ?? [],
           author: {
             id: data.authorId,
-            name: data.authorName ?? "",
+            firstName: data.authorName?.split(" ")[0] ?? "",
+            lastName: data.authorName?.split(" ").slice(1).join(" ") ?? "",
           },
           supplier: {
             id: data.supplierId,
@@ -90,7 +91,9 @@ export const useCreateQuote = (params?: Parameters<typeof readQuotes>[0]) => {
           },
           contactPerson: {
             id: data.contactPersonId,
-            name: data.contactPersonName ?? "",
+            firstName: data.contactPersonName?.split(" ")[0] ?? "",
+            lastName:
+              data.contactPersonName?.split(" ").slice(1).join(" ") ?? "",
           },
         };
 

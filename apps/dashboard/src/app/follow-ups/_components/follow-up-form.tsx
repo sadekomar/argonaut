@@ -90,7 +90,12 @@ export function FollowUpForm({
       name: quote.referenceNumber,
     }))
   );
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
 
   return (
     <Form {...form}>

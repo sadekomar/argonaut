@@ -111,7 +111,12 @@ export function RfqsTable() {
   });
 
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
 
@@ -270,25 +275,28 @@ export function RfqsTable() {
       },
       enableColumnFilter: true,
     }),
-    columnHelper.accessor((row) => row.author.name, {
-      id: "author",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Author" />
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5">
-          <User className="size-4 text-muted-foreground" />
-          {row.original.author.name}
-        </div>
-      ),
-      meta: {
-        label: "Author",
-        variant: "multiSelect",
-        options: authorsInitialOptions,
-        icon: User,
-      },
-      enableColumnFilter: true,
-    }),
+    columnHelper.accessor(
+      (row) => `${row.author?.firstName} ${row.author?.lastName}`,
+      {
+        id: "author",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Author" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <User className="size-4 text-muted-foreground" />
+            {row.original.author?.firstName} {row.original.author?.lastName}
+          </div>
+        ),
+        meta: {
+          label: "Author",
+          variant: "multiSelect",
+          options: authorsInitialOptions,
+          icon: User,
+        },
+        enableColumnFilter: true,
+      }
+    ),
     columnHelper.accessor("value", {
       id: "value",
       header: ({ column }) => (

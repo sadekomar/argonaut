@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RegistrationForm } from "./registration-form";
+import { Registration } from "../registrations-table";
 
 type RegistrationStatus =
   | "PURSUING"
@@ -17,25 +18,6 @@ type RegistrationStatus =
   | "VERIFIED"
   | "ON_HOLD"
   | "DECLINED";
-
-interface Registration {
-  id: string;
-  companyId: string;
-  company: {
-    id: string;
-    name: string;
-  };
-  registrationStatus: RegistrationStatus;
-  authorId: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  registrationFile: string | null;
-  notes: string | null;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
 
 interface UpdateRegistrationModalProps {
   open: boolean;

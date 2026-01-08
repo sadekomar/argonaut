@@ -62,7 +62,7 @@ type RegistrationStatus =
   | "ON_HOLD"
   | "DECLINED";
 
-interface Registration {
+export interface Registration {
   id: string;
   companyId: string;
   company: {
@@ -74,7 +74,8 @@ interface Registration {
   authorId: string;
   author: {
     id: string;
-    name: string;
+    firstName: string | null;
+    lastName: string | null;
   };
   registrationFile: string | null;
   notes: string | null;
@@ -327,25 +328,28 @@ export function RegistrationsTable() {
       },
       enableColumnFilter: true,
     }),
-    columnHelper.accessor((row) => row.author.name, {
-      id: "author",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} label="Author" />
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5">
-          <User className="size-4 text-muted-foreground" />
-          {row.original.author.name}
-        </div>
-      ),
-      meta: {
-        label: "Author",
-        placeholder: "Search authors...",
-        variant: "text",
-        icon: User,
-      },
-      enableColumnFilter: true,
-    }),
+    columnHelper.accessor(
+      (row) => `${row.author?.firstName} ${row.author?.lastName}`,
+      {
+        id: "author",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Author" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <User className="size-4 text-muted-foreground" />
+            {row.original.author?.firstName} {row.original.author?.lastName}
+          </div>
+        ),
+        meta: {
+          label: "Author",
+          placeholder: "Search authors...",
+          variant: "text",
+          icon: User,
+        },
+        enableColumnFilter: true,
+      }
+    ),
     columnHelper.accessor("registrationFile", {
       id: "registrationFile",
       header: ({ column }) => (

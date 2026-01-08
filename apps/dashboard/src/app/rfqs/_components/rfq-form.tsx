@@ -88,7 +88,12 @@ export function RfqForm({
     rfq: null,
   });
   const projectsInitialOptions = mapToSelectOptions(projects?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
   const quotesInitialOptions = mapToSelectOptions(
@@ -189,7 +194,8 @@ export function RfqForm({
                       createNewFunction={async (value) => {
                         const author = await createPerson({
                           id: value.id,
-                          name: value.name,
+                          firstName: value.name.split(" ")[0],
+                          lastName: value.name.split(" ")[1],
                           type: PersonType.AUTHOR,
                         });
                         return author.id;

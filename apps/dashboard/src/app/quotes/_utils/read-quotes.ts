@@ -175,7 +175,7 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
         case "project":
           return { project: { name: order } };
         case "author":
-          return { author: { name: order } };
+          return { author: { firstName: order } };
         case "value":
           return { value: order };
         case "currency":
@@ -200,7 +200,8 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
       author: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
       supplier: {
@@ -224,7 +225,8 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
       contactPerson: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
     },

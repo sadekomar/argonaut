@@ -81,7 +81,7 @@ export const readFollowUps = async (params: ReadFollowUpsParams = {}) => {
         case "quote":
           return { quote: { referenceNumber: order } };
         case "author":
-          return { author: { name: order } };
+          return { author: { firstName: order } };
         case "notes":
           return { notes: order };
         case "createdAt":
@@ -110,7 +110,8 @@ export const readFollowUps = async (params: ReadFollowUpsParams = {}) => {
       author: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
     },

@@ -66,13 +66,9 @@ export function UpdatePersonForm({
   // Pre-populate form when person data is loaded
   useEffect(() => {
     if (person) {
-      const firstName = person.firstName || person.name.split(" ")[0] || "";
-      const lastName =
-        person.lastName || person.name.split(" ").slice(1).join(" ") || "";
-
       form.reset({
-        firstName,
-        lastName,
+        firstName: person.firstName || "",
+        lastName: person.lastName || "",
         email: person.email || "",
         phone: person.phone || "",
         companyId: person.companyId || "",

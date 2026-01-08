@@ -61,7 +61,9 @@ export function ViewQuoteModal({
                 <User className="size-4" />
                 Author
               </label>
-              <p className="mt-1 text-sm">{quote.author.name}</p>
+              <p className="mt-1 text-sm">
+                {quote.author?.firstName} {quote.author?.lastName}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
@@ -89,7 +91,9 @@ export function ViewQuoteModal({
                 <Users className="size-4" />
                 Contact Person
               </label>
-              <p className="mt-1 text-sm">{quote.contactPerson.name}</p>
+              <p className="mt-1 text-sm">
+                {quote.contactPerson?.firstName} {quote.contactPerson?.lastName}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">

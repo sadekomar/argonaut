@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import type { CompanyType } from "@repo/db";
+import { Registration } from "../registrations-table";
 
 type RegistrationStatus =
   | "PURSUING"
@@ -35,26 +36,6 @@ type RegistrationStatus =
   | "VERIFIED"
   | "ON_HOLD"
   | "DECLINED";
-
-interface Registration {
-  id: string;
-  companyId: string;
-  company: {
-    id: string;
-    name: string;
-    type: CompanyType;
-  };
-  registrationStatus: RegistrationStatus;
-  authorId: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  registrationFile: string | null;
-  notes: string | null;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
 
 const getTypeBadgeVariant = (type: CompanyType) => {
   switch (type) {
@@ -168,28 +149,36 @@ export function ViewRegistrationModal({
               <label className="text-sm font-medium text-muted-foreground">
                 Registration Status
               </label>
-              <p className="mt-1">{getStatusBadge(registration.registrationStatus)}</p>
+              <p className="mt-1">
+                {getStatusBadge(registration.registrationStatus)}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 <User className="size-4" />
                 Author
               </label>
-              <p className="mt-1 text-sm">{registration.author.name}</p>
+              <p className="mt-1 text-sm">
+                {registration.author?.firstName} {registration.author?.lastName}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 <Calendar className="size-4" />
                 Created At
               </label>
-              <p className="mt-1 text-sm">{formatDate(registration.createdAt)}</p>
+              <p className="mt-1 text-sm">
+                {formatDate(registration.createdAt)}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 <Calendar className="size-4" />
                 Updated At
               </label>
-              <p className="mt-1 text-sm">{formatDate(registration.updatedAt)}</p>
+              <p className="mt-1 text-sm">
+                {formatDate(registration.updatedAt)}
+              </p>
             </div>
           </div>
 
@@ -198,7 +187,9 @@ export function ViewRegistrationModal({
               <label className="text-sm font-medium text-muted-foreground">
                 Notes
               </label>
-              <p className="mt-1 text-sm whitespace-pre-wrap">{registration.notes}</p>
+              <p className="mt-1 text-sm whitespace-pre-wrap">
+                {registration.notes}
+              </p>
             </div>
           )}
 
@@ -247,4 +238,3 @@ export function ViewRegistrationModal({
     </Dialog>
   );
 }
-

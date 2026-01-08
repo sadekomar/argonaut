@@ -127,7 +127,12 @@ export function UpdateRegistrationForm({
     type: [PersonType.AUTHOR],
   });
   const companiesInitialOptions = mapToSelectOptions(companies?.data);
-  const authorsInitialOptions = mapToSelectOptions(authors?.data);
+  const authorsInitialOptions = mapToSelectOptions(
+    authors?.data?.map((author) => ({
+      id: author.id,
+      name: `${author?.firstName} ${author?.lastName}`.trim(),
+    }))
+  );
 
   if (!registration) {
     return <div>Loading...</div>;

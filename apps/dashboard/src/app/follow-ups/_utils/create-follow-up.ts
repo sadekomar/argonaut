@@ -29,7 +29,8 @@ export async function createFollowUp(data: CreateFollowUpForm) {
         author: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
           },
         },
       },
@@ -51,4 +52,3 @@ export async function createFollowUp(data: CreateFollowUpForm) {
     throw e;
   }
 }
-
