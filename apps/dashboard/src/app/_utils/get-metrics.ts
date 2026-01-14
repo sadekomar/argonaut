@@ -44,21 +44,21 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   // Calculate total quotations value (sum of value * rate for all quotes)
   const totalQuotationsValue = quotes.reduce((sum, quote) => {
-    return sum + quote.value * quote.rate;
+    return sum + quote.value / quote.rate;
   }, 0);
 
   // Calculate total values by outcome
   const wonValue = quotes
     .filter((quote) => quote.quoteOutcome === QuoteOutcome.WON)
-    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
+    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
 
   const lostValue = quotes
     .filter((quote) => quote.quoteOutcome === QuoteOutcome.LOST)
-    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
+    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
 
   const pendingValue = quotes
     .filter((quote) => quote.quoteOutcome === QuoteOutcome.PENDING)
-    .reduce((sum, quote) => sum + quote.value * quote.rate, 0);
+    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
 
   // Count quotes by outcome using Prisma count for better performance
   const [wonQuotations, lostQuotations, pendingQuotations] = await Promise.all([
