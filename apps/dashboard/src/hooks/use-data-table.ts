@@ -167,18 +167,18 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       .withDefault(initialState?.sorting ?? [])
   );
 
+  // Sorting change resets page to 1
   const onSortingChange = React.useCallback(
     (updaterOrValue: Updater<SortingState>) => {
+      void setPage(1);
       if (typeof updaterOrValue === "function") {
         const newSorting = updaterOrValue(sorting);
-        void setPage(1);
         setSorting(newSorting as ExtendedColumnSort<TData>[]);
       } else {
-        void setPage(1);
         setSorting(updaterOrValue as ExtendedColumnSort<TData>[]);
       }
     },
-    [sorting, setSorting]
+    [sorting, setSorting, setPage]
   );
 
   const filterableColumns = React.useMemo(() => {
@@ -186,6 +186,15 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
     return columns.filter((column) => column.enableColumnFilter);
   }, [columns, enableAdvancedFilter]);
+
+  // Create a stable key for column options to avoid recreating filterParsers unnecessarily
+  const columnOptionsKey = React.useMemo(() => {
+    return filterableColumns
+      .map((col) =>
+        col.meta?.options ? `${col.id}:${col.meta.options.length}` : col.id
+      )
+      .join(",");
+  }, [filterableColumns]);
 
   const filterParsers = React.useMemo(() => {
     if (enableAdvancedFilter) return {};
@@ -203,14 +212,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       }
       return acc;
     }, {});
-  }, [
-    filterableColumns,
-    queryStateOptions,
-    enableAdvancedFilter,
-    ...filterableColumns.map((col) =>
-      col.meta?.options ? JSON.stringify(col.meta.options) : null
-    ),
-  ]);
+  }, [filterableColumns, queryStateOptions, enableAdvancedFilter, columnOptionsKey]);
 
   const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 

@@ -120,13 +120,14 @@ export function DataTableFilterList<TData>({
     }),
   );
 
+  // Use functional update to avoid filters dependency and stale closures
   const onFilterAdd = React.useCallback(() => {
     const column = columns[0];
 
     if (!column) return;
 
-    debouncedSetFilters([
-      ...filters,
+    debouncedSetFilters((prevFilters) => [
+      ...prevFilters,
       {
         id: column.id as Extract<keyof TData, string>,
         value: "",
@@ -137,7 +138,7 @@ export function DataTableFilterList<TData>({
         filterId: generateId({ length: 8 }),
       },
     ]);
-  }, [columns, filters, debouncedSetFilters]);
+  }, [columns, debouncedSetFilters]);
 
   const onFilterUpdate = React.useCallback(
     (
@@ -157,17 +158,17 @@ export function DataTableFilterList<TData>({
     [debouncedSetFilters],
   );
 
+  // Use functional update to avoid filters dependency and stale closures
   const onFilterRemove = React.useCallback(
     (filterId: string) => {
-      const updatedFilters = filters.filter(
-        (filter) => filter.filterId !== filterId,
+      void setFilters((prevFilters) =>
+        prevFilters.filter((filter) => filter.filterId !== filterId)
       );
-      void setFilters(updatedFilters);
       requestAnimationFrame(() => {
         addButtonRef.current?.focus();
       });
     },
-    [filters, setFilters],
+    [setFilters],
   );
 
   const onFiltersReset = React.useCallback(() => {

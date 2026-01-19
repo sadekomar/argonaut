@@ -33,35 +33,31 @@ export interface DashboardMetrics {
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  // Get all quotes with their values, rates, and outcomes for calculating metrics
-  const quotes = await prisma.quote.findMany({
-    select: {
-      value: true,
-      rate: true,
-      quoteOutcome: true,
-    },
-  });
-
-  // Calculate total quotations value (sum of value * rate for all quotes)
-  const totalQuotationsValue = quotes.reduce((sum, quote) => {
-    return sum + quote.value / quote.rate;
-  }, 0);
-
-  // Calculate total values by outcome
-  const wonValue = quotes
-    .filter((quote) => quote.quoteOutcome === QuoteOutcome.WON)
-    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
-
-  const lostValue = quotes
-    .filter((quote) => quote.quoteOutcome === QuoteOutcome.LOST)
-    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
-
-  const pendingValue = quotes
-    .filter((quote) => quote.quoteOutcome === QuoteOutcome.PENDING)
-    .reduce((sum, quote) => sum + quote.value / quote.rate, 0);
-
-  // Count quotes by outcome using Prisma count for better performance
-  const [wonQuotations, lostQuotations, pendingQuotations] = await Promise.all([
+  // Execute all independent database queries in parallel for maximum performance
+  const [
+    quotes,
+    wonQuotations,
+    lostQuotations,
+    pendingQuotations,
+    totalProjects,
+    totalCompanies,
+    totalRfqs,
+    totalRegistrations,
+    consultantRegistrations,
+    underReviewRegistrations,
+    verifiedRegistrations,
+    onHoldRegistrations,
+    pursuingRegistrations,
+  ] = await Promise.all([
+    // Quotes data for value calculations
+    prisma.quote.findMany({
+      select: {
+        value: true,
+        rate: true,
+        quoteOutcome: true,
+      },
+    }),
+    // Quote counts by outcome
     prisma.quote.count({
       where: { quoteOutcome: QuoteOutcome.WON },
     }),
@@ -71,24 +67,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     prisma.quote.count({
       where: { quoteOutcome: QuoteOutcome.PENDING },
     }),
-  ]);
-
-  // Get total projects and companies counts in parallel
-  const [totalProjects, totalCompanies, totalRfqs] = await Promise.all([
+    // Projects, companies, and RFQs counts
     prisma.project.count(),
     prisma.company.count(),
     prisma.rfq.count(),
-  ]);
-
-  // Get all metrics in parallel for better performance
-  const [
-    totalRegistrations,
-    consultantRegistrations,
-    underReviewRegistrations,
-    verifiedRegistrations,
-    onHoldRegistrations,
-    pursuingRegistrations,
-  ] = await Promise.all([
+    // Registration counts
     prisma.registration.count(),
     prisma.registration.count({
       where: {
@@ -110,6 +93,25 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       where: { registrationStatus: RegistrationStatus.PURSUING },
     }),
   ]);
+
+  // Calculate quotation values from fetched quotes (single pass through data)
+  let totalQuotationsValue = 0;
+  let wonValue = 0;
+  let lostValue = 0;
+  let pendingValue = 0;
+
+  for (const quote of quotes) {
+    const convertedValue = quote.value / quote.rate;
+    totalQuotationsValue += convertedValue;
+
+    if (quote.quoteOutcome === QuoteOutcome.WON) {
+      wonValue += convertedValue;
+    } else if (quote.quoteOutcome === QuoteOutcome.LOST) {
+      lostValue += convertedValue;
+    } else if (quote.quoteOutcome === QuoteOutcome.PENDING) {
+      pendingValue += convertedValue;
+    }
+  }
 
   return {
     quotations: {

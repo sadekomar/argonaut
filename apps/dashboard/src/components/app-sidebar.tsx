@@ -88,13 +88,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login" || pathname === "/signup";
   const { data: session } = authClient.useSession();
-  const [isAlunaut, setIsAlunaut] = React.useState(false);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsAlunaut(window.location.hostname === "crm.alunaut.com.eg");
-    }
-  }, []);
+  // Use lazy state initialization - runs only once, no effect needed
+  const [isAlunaut] = React.useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.location.hostname === "crm.alunaut.com.eg"
+  );
 
   // Get user data from session or use fallback
   const user = React.useMemo(() => {

@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig } from "@/components/ui/chart";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getDashboardMetrics } from "../_utils/get-metrics";
 import { getQuotesTimeSeries } from "../_utils/get-quotes-time-series";
 import {
@@ -13,7 +14,6 @@ import {
   TrendingDown,
   Clock,
   Building2,
-  Users,
   UserCheck,
   FileCheck,
   Eye,
@@ -22,6 +22,41 @@ import {
   Target,
   ClipboardList,
 } from "lucide-react";
+
+// Hoisted static chart skeleton - avoids recreation on every render
+const chartSkeleton = <Skeleton className="h-[250px] w-full rounded-lg" />;
+
+// Dynamically import the chart component to reduce initial bundle size (~300KB for recharts)
+const ChartAreaInteractive = dynamic(
+  () =>
+    import("@/components/chart-area-interactive").then(
+      (m) => m.ChartAreaInteractive
+    ),
+  {
+    ssr: false,
+    loading: () => chartSkeleton,
+  }
+);
+
+// Hoisted static loading skeleton cards - avoids recreation on every render
+const loadingSkeletonCards = Array.from({ length: 12 }).map((_, i) => (
+  <Card key={i}>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+      <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+    </CardHeader>
+    <CardContent>
+      <div className="h-8 w-32 bg-muted animate-pulse rounded mt-2" />
+    </CardContent>
+  </Card>
+));
+
+// Hoisted static loading skeleton element
+const loadingSkeleton = (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    {loadingSkeletonCards}
+  </div>
+);
 
 function formatNumber(num: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -88,21 +123,7 @@ export function DashboardMetrics() {
   });
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-4 bg-muted animate-pulse rounded" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-32 bg-muted animate-pulse rounded mt-2" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    return loadingSkeleton;
   }
 
   if (!metrics) {

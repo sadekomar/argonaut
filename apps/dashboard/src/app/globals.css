@@ -122,3 +122,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Performance optimization: defer rendering of off-screen table rows */
+/* This significantly improves initial render time for long data tables */
+.data-table-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 48px;
+}
