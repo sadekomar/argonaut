@@ -10,7 +10,8 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/kibo-ui/combobox";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { z } from "zod";
 
 const CreateNewCombobox = ({
   initialOptions,
@@ -36,16 +37,42 @@ const CreateNewCombobox = ({
   disableCreateNew?: boolean;
 }) => {
   const [data, setData] = useState(initialOptions);
+  const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
     setData(initialOptions);
   }, [initialOptions]);
 
+  // Create Zod schema that validates the input value
+  const createNewSchema = useMemo(() => {
+    const existingLabels = data.map((option) => option.label.toLowerCase());
+    return z
+      .string()
+      .trim()
+      .min(1, "Value cannot be empty")
+      .refine(
+        (val) => !existingLabels.includes(val.toLowerCase()),
+        "This value already exists",
+      );
+  }, [data]);
+
+  // Check if current input is valid for creation
+  const isValidForCreation = useMemo(() => {
+    const result = createNewSchema.safeParse(inputValue);
+    return result.success;
+  }, [inputValue, createNewSchema]);
+
   const handleCreateNew = (newValue: string) => {
+    // Final validation before creation
+    const result = createNewSchema.safeParse(newValue);
+    if (!result.success) {
+      return;
+    }
+
     const uuid = crypto.randomUUID();
     const formattedValue = {
       value: uuid,
-      label: newValue,
+      label: newValue.trim(),
     };
     setData((prev) => [...prev, formattedValue]);
     // Select the newly created item by UUID
@@ -55,7 +82,7 @@ const CreateNewCombobox = ({
         onValueChange(uuid);
       }
     }, 0);
-    createNewFunction({ id: uuid, name: newValue });
+    createNewFunction({ id: uuid, name: newValue.trim() });
   };
 
   return (
@@ -67,7 +94,7 @@ const CreateNewCombobox = ({
     >
       <ComboboxTrigger className="w-[300px]" />
       <ComboboxContent>
-        <ComboboxInput />
+        <ComboboxInput value={inputValue} onValueChange={setInputValue} />
         <ComboboxList>
           <ComboboxGroup>
             {data.map((option) => (
@@ -80,7 +107,7 @@ const CreateNewCombobox = ({
               </ComboboxItem>
             ))}
           </ComboboxGroup>
-          {!disableCreateNew && (
+          {!disableCreateNew && isValidForCreation && (
             <ComboboxCreateNew onCreateNew={handleCreateNew} />
           )}
         </ComboboxList>
