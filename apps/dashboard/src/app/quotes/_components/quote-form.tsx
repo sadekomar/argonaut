@@ -114,7 +114,7 @@ export function QuoteForm({
   const [isNewContactPerson, setIsNewContactPerson] = useState(false);
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
   const [existingObjectKeys, setExistingObjectKeys] = useState(
-    defaultValues?.objectKeys ?? []
+    defaultValues?.objectKeys ?? [],
   );
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
@@ -134,7 +134,7 @@ export function QuoteForm({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ quoteId }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -155,7 +155,7 @@ export function QuoteForm({
       setExistingObjectKeys((prev) => prev.filter((key) => key !== objectKey));
       form.setValue(
         "objectKeys",
-        (form.getValues("objectKeys") ?? []).filter((key) => key !== objectKey)
+        (form.getValues("objectKeys") ?? []).filter((key) => key !== objectKey),
       );
 
       // Invalidate all quote queries regardless of their params
@@ -221,13 +221,13 @@ export function QuoteForm({
     contactPersons?.data?.map((contactPerson) => ({
       id: contactPerson.id,
       name: `${contactPerson.firstName} ${contactPerson.lastName}`.trim(),
-    }))
+    })),
   );
   const authorsInitialOptions = mapToSelectOptions(
     authors?.data?.map((author) => ({
       id: author.id,
       name: `${author.firstName} ${author.lastName}`.trim(),
-    }))
+    })),
   );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
@@ -235,7 +235,7 @@ export function QuoteForm({
     rfqs?.data?.map((rfq) => ({
       ...rfq,
       name: rfq.referenceNumber,
-    }))
+    })),
   );
 
   const { control: uploadControl } = useUploadFiles({
@@ -272,19 +272,19 @@ export function QuoteForm({
         createQuote.mutate({
           ...data,
           authorName: authorsInitialOptions.find(
-            (author) => author.value === data.authorId
+            (author) => author.value === data.authorId,
           )?.label,
           supplierName: suppliersInitialOptions?.find(
-            (supplier) => supplier.value === data.supplierId
+            (supplier) => supplier.value === data.supplierId,
           )?.label,
           clientName: clientsInitialOptions?.find(
-            (client) => client.value === data.clientId
+            (client) => client.value === data.clientId,
           )?.label,
           projectName: projectsInitialOptions?.find(
-            (project) => project.value === data.projectId
+            (project) => project.value === data.projectId,
           )?.label,
           contactPersonName: contactPersonsInitialOptions?.find(
-            (contactPerson) => contactPerson.value === data.contactPersonId
+            (contactPerson) => contactPerson.value === data.contactPersonId,
           )?.label,
         });
       } else {
@@ -807,11 +807,11 @@ function useGenerateCreateQuote() {
         "quoteOutcome",
         "approximateSiteDeliveryDate",
       ]),
-    []
+    [],
   );
   const [sort] = useQueryState(
     "sort",
-    getSortingStateParser<Quote>(columnIds).withDefault([])
+    getSortingStateParser<Quote>(columnIds).withDefault([]),
   );
 
   const [filters] = useQueryStates({
