@@ -65,6 +65,15 @@ export const useCreateQuote = (params?: Parameters<typeof readQuotes>[0]) => {
           clientId: data.clientId,
           projectId: data.projectId,
           contactPersonId: data.contactPersonId,
+          salesPersonId: data.salesPersonId ?? null,
+          salesPerson: data.salesPersonId
+            ? {
+                id: data.salesPersonId ?? "",
+                firstName: data.salesPersonName?.split(" ")[0] ?? "",
+                lastName:
+                  data.salesPersonName?.split(" ").slice(1).join(" ") ?? "",
+              }
+            : null,
           quoteOutcome: data.quoteOutcome ?? "PENDING",
           approximateSiteDeliveryDate: data.approximateSiteDeliveryDate
             ? new Date(data.approximateSiteDeliveryDate)
