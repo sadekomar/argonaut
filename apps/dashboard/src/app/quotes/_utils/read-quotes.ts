@@ -3,7 +3,7 @@
 import { prisma } from "@repo/db";
 import type { Currency, Prisma, QuoteOutcome } from "@repo/db";
 
-interface ReadQuotesParams {
+export interface ReadQuotesParams {
   page?: number;
   perPage?: number;
   sort?: Array<{ id: string; desc: boolean }>;
@@ -13,6 +13,7 @@ interface ReadQuotesParams {
   supplier?: string[];
   project?: string[];
   author?: string[];
+  salesPerson?: string[];
   currency?: string[];
   quoteOutcome?: string[];
   approximateSiteDeliveryDate?: string | [string, string];
@@ -30,6 +31,7 @@ function buildWhereClause(
     supplier,
     project,
     author,
+    salesPerson,
     currency,
     quoteOutcome,
     approximateSiteDeliveryDate,
@@ -95,6 +97,12 @@ function buildWhereClause(
     };
   }
 
+  if (salesPerson && salesPerson.length > 0) {
+    where.salesPersonId = {
+      in: salesPerson,
+    };
+  }
+
   if (currency && currency.length > 0) {
     where.currency = {
       in: currency as Currency[],
@@ -148,6 +156,103 @@ function buildWhereClause(
   return where;
 }
 
+const quoteInclude = {
+  author: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  },
+  supplier: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  client: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  project: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  contactPerson: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  },
+  salesPerson: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  },
+} as const;
+
+function buildOrderBy(
+  sort: Array<{ id: string; desc: boolean }>
+): Prisma.QuoteOrderByWithRelationInput[] {
+  const order: Prisma.SortOrder = "asc";
+  const orderDesc: Prisma.SortOrder = "desc";
+  const orderBy = sort.map((sortItem) => {
+    const o: Prisma.SortOrder = sortItem.desc ? orderDesc : order;
+    switch (sortItem.id) {
+      case "referenceNumber":
+        return { referenceNumber: o };
+      case "date":
+        return { date: o };
+      case "client":
+        return { client: { name: o } };
+      case "supplier":
+        return { supplier: { name: o } };
+      case "project":
+        return { project: { name: o } };
+      case "author":
+        return { author: { firstName: o } };
+      case "salesPerson":
+        return { salesPerson: { firstName: o } };
+      case "value":
+        return { value: o };
+      case "currency":
+        return { currency: o };
+      case "quoteOutcome":
+        return { quoteOutcome: o };
+      case "approximateSiteDeliveryDate":
+        return { approximateSiteDeliveryDate: o };
+      default:
+        return { createdAt: orderDesc };
+    }
+  });
+  return orderBy.length > 0
+    ? orderBy
+    : ([{ createdAt: orderDesc }] as Prisma.QuoteOrderByWithRelationInput[]);
+}
+
+export async function getQuotesForExport(
+  params: ReadQuotesParams = {},
+  limit = 10000
+) {
+  const sort = params.sort ?? [{ id: "referenceNumber", desc: true }];
+  const where = buildWhereClause(params);
+  const orderBy = buildOrderBy(sort);
+  const quotes = await prisma.quote.findMany({
+    where,
+    include: quoteInclude,
+    orderBy,
+    take: limit,
+  });
+  return quotes;
+}
+
 export const readQuotes = async (params: ReadQuotesParams = {}) => {
   const {
     page,
@@ -159,36 +264,7 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
   const where = buildWhereClause(params);
 
   // Build orderBy from sorting
-  const orderBy: Prisma.QuoteOrderByWithRelationInput[] = sort.map(
-    (sortItem) => {
-      const order = sortItem.desc ? "desc" : "asc";
-
-      switch (sortItem.id) {
-        case "referenceNumber":
-          return { referenceNumber: order };
-        case "date":
-          return { date: order };
-        case "client":
-          return { client: { name: order } };
-        case "supplier":
-          return { supplier: { name: order } };
-        case "project":
-          return { project: { name: order } };
-        case "author":
-          return { author: { firstName: order } };
-        case "value":
-          return { value: order };
-        case "currency":
-          return { currency: order };
-        case "quoteOutcome":
-          return { quoteOutcome: order };
-        case "approximateSiteDeliveryDate":
-          return { approximateSiteDeliveryDate: order };
-        default:
-          return { createdAt: "desc" };
-      }
-    }
-  );
+  const orderBy = buildOrderBy(sort);
 
   // Get total count for pagination
   const total = await prisma.quote.count({ where });
@@ -196,41 +272,8 @@ export const readQuotes = async (params: ReadQuotesParams = {}) => {
   // Fetch quotes with pagination
   const quotes = await prisma.quote.findMany({
     where,
-    include: {
-      author: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-      supplier: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      client: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      project: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      contactPerson: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-    },
-    orderBy: orderBy.length > 0 ? orderBy : [{ createdAt: "desc" }],
+    include: quoteInclude,
+    orderBy,
     skip: page && perPage ? (page - 1) * perPage : undefined,
     take: page && perPage ? perPage : undefined,
   });

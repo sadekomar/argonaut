@@ -17,6 +17,7 @@ export async function updateQuote(id: string, data: Partial<QuoteForm>) {
     projectId,
     supplierId,
     contactPersonId,
+    salesPersonId,
     quoteOutcome,
     approximateSiteDeliveryDate,
     objectKeys,
@@ -55,6 +56,11 @@ export async function updateQuote(id: string, data: Partial<QuoteForm>) {
       }),
       ...(contactPersonId !== undefined && {
         contactPerson: { connect: { id: contactPersonId } },
+      }),
+      ...(salesPersonId !== undefined && {
+        salesPerson: salesPersonId
+          ? { connect: { id: salesPersonId } }
+          : { disconnect: true },
       }),
       ...(quoteOutcome !== undefined && {
         quoteOutcome: quoteOutcome as QuoteOutcome,

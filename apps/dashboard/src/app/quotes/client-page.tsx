@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateEmptyMonths } from "@/lib/utils";
 import { AddQuoteModal } from "./_components/add-quote-modal";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -20,8 +20,12 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { readQuotesMetadata } from "./_utils/read-quotes";
 import { TestingButton } from "./_components/testing-button";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
+import { exportQuotesToCsv } from "./_utils/export-quotes-csv";
 
 export default function QuotesClientPage() {
+  const [exporting, setExporting] = useState(false);
   const [filters] = useQueryStates({
     date: parseAsString,
     referenceNumber: parseAsString.withDefault(""),
@@ -33,6 +37,33 @@ export default function QuotesClientPage() {
     quoteOutcome: parseAsArrayOf(parseAsString).withDefault([]),
     approximateSiteDeliveryDate: parseAsString,
   });
+
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      const csv = await exportQuotesToCsv({
+        referenceNumber: filters.referenceNumber,
+        date: filters.date ?? undefined,
+        client: filters.client,
+        supplier: filters.supplier,
+        project: filters.project,
+        author: filters.author,
+        currency: filters.currency,
+        quoteOutcome: filters.quoteOutcome,
+        approximateSiteDeliveryDate:
+          filters.approximateSiteDeliveryDate ?? undefined,
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `quotes-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const { data: quotesMetadata, isPending: quotesMetadataPending } = useQuery({
     queryKey: ["quotesMetadata", { ...filters }],
@@ -72,7 +103,21 @@ export default function QuotesClientPage() {
       <main className="flex-1 p-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Quotes</h1>
-          <AddQuoteModal />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportCsv}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Export to CSV
+            </Button>
+            <AddQuoteModal />
+          </div>
         </div>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card>

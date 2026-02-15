@@ -42,6 +42,7 @@ export function EditQuoteModal({
             clientId: quote.clientId,
             projectId: quote.projectId,
             contactPersonId: quote.contactPersonId,
+            salesPersonId: quote.salesPersonId || "",
             approximateSiteDeliveryDate: formatDateForInput(
               quote.approximateSiteDeliveryDate
             ),

@@ -134,6 +134,8 @@ model Quote {
   project                     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   contactPersonId             String
   contactPerson               Person       @relation("ContactPerson", fields: [contactPersonId], references: [id], onDelete: Cascade)
+  salesPersonId               String?
+  salesPerson                 Person?      @relation("SalesPerson", fields: [salesPersonId], references: [id], onDelete: Cascade)
   quoteOutcome                QuoteOutcome @default(PENDING)
   approximateSiteDeliveryDate DateTime?
   createdAt                   DateTime     @default(now())
@@ -252,6 +254,7 @@ model Person {
   authoredQuotes          Quote[]        @relation("Author")
   // External contact person for quotes
   contactForQuotes        Quote[]        @relation("ContactPerson")
+  salesPersonQuotes       Quote[]        @relation("SalesPerson")
   authoredRfqs            Rfq[]
   companyId               String?
   company                 Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)

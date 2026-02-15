@@ -88,6 +88,8 @@ const quoteFormSchema = z.object({
   contactPersonTitle: z.string().trim().optional(),
   contactPersonPhone: z.string().trim().optional(),
   contactPersonEmail: z.string().trim().optional(),
+  salesPersonId: z.string().trim().optional(),
+  salesPersonName: z.string().trim().optional(),
   rfqId: z.string().trim().optional(),
 });
 
@@ -114,7 +116,7 @@ export function QuoteForm({
   const [isNewContactPerson, setIsNewContactPerson] = useState(false);
   const [currentCurrency, setCurrentCurrency] = useState("EGP");
   const [existingObjectKeys, setExistingObjectKeys] = useState(
-    defaultValues?.objectKeys ?? [],
+    defaultValues?.objectKeys ?? []
   );
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
@@ -134,7 +136,7 @@ export function QuoteForm({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ quoteId }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -155,7 +157,7 @@ export function QuoteForm({
       setExistingObjectKeys((prev) => prev.filter((key) => key !== objectKey));
       form.setValue(
         "objectKeys",
-        (form.getValues("objectKeys") ?? []).filter((key) => key !== objectKey),
+        (form.getValues("objectKeys") ?? []).filter((key) => key !== objectKey)
       );
 
       // Invalidate all quote queries regardless of their params
@@ -190,6 +192,7 @@ export function QuoteForm({
       contactPersonTitle: "",
       contactPersonEmail: "",
       supplierId: "",
+      salesPersonId: "",
       approximateSiteDeliveryDate: "",
       objectKeys: [],
       rfqId: "",
@@ -221,13 +224,13 @@ export function QuoteForm({
     contactPersons?.data?.map((contactPerson) => ({
       id: contactPerson.id,
       name: `${contactPerson.firstName} ${contactPerson.lastName}`.trim(),
-    })),
+    }))
   );
   const authorsInitialOptions = mapToSelectOptions(
     authors?.data?.map((author) => ({
       id: author.id,
       name: `${author.firstName} ${author.lastName}`.trim(),
-    })),
+    }))
   );
   const clientsInitialOptions = mapToSelectOptions(clients?.data);
   const suppliersInitialOptions = mapToSelectOptions(suppliers?.data);
@@ -235,7 +238,7 @@ export function QuoteForm({
     rfqs?.data?.map((rfq) => ({
       ...rfq,
       name: rfq.referenceNumber,
-    })),
+    }))
   );
 
   const { control: uploadControl } = useUploadFiles({
@@ -272,19 +275,22 @@ export function QuoteForm({
         createQuote.mutate({
           ...data,
           authorName: authorsInitialOptions.find(
-            (author) => author.value === data.authorId,
+            (author) => author.value === data.authorId
           )?.label,
           supplierName: suppliersInitialOptions?.find(
-            (supplier) => supplier.value === data.supplierId,
+            (supplier) => supplier.value === data.supplierId
           )?.label,
           clientName: clientsInitialOptions?.find(
-            (client) => client.value === data.clientId,
+            (client) => client.value === data.clientId
           )?.label,
           projectName: projectsInitialOptions?.find(
-            (project) => project.value === data.projectId,
+            (project) => project.value === data.projectId
           )?.label,
           contactPersonName: contactPersonsInitialOptions?.find(
-            (contactPerson) => contactPerson.value === data.contactPersonId,
+            (contactPerson) => contactPerson.value === data.contactPersonId
+          )?.label,
+          salesPersonName: authorsInitialOptions?.find(
+            (person) => person.value === data.salesPersonId
           )?.label,
         });
       } else {
@@ -339,6 +345,29 @@ export function QuoteForm({
                         });
                       }}
                       label="author"
+                      value={field.value ?? ""}
+                      onValueChange={(value) => field.onChange(value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="salesPersonId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Sales Person{" "}
+                    <span className="text-muted-foreground">(Optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <CreateNewCombobox
+                      initialOptions={authorsInitialOptions}
+                      disableCreateNew={true}
+                      createNewFunction={async () => {}}
+                      label="sales person"
                       value={field.value ?? ""}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -802,16 +831,17 @@ function useGenerateCreateQuote() {
         "supplier",
         "project",
         "author",
+        "salesPerson",
         "value",
         "currency",
         "quoteOutcome",
         "approximateSiteDeliveryDate",
       ]),
-    [],
+    []
   );
   const [sort] = useQueryState(
     "sort",
-    getSortingStateParser<Quote>(columnIds).withDefault([]),
+    getSortingStateParser<Quote>(columnIds).withDefault([])
   );
 
   const [filters] = useQueryStates({
@@ -821,6 +851,7 @@ function useGenerateCreateQuote() {
     supplier: parseAsArrayOf(parseAsString).withDefault([]),
     project: parseAsArrayOf(parseAsString).withDefault([]),
     author: parseAsArrayOf(parseAsString).withDefault([]),
+    salesPerson: parseAsArrayOf(parseAsString).withDefault([]),
     currency: parseAsArrayOf(parseAsString).withDefault([]),
     quoteOutcome: parseAsArrayOf(parseAsString).withDefault([]),
     approximateSiteDeliveryDate: parseAsString,
@@ -836,6 +867,7 @@ function useGenerateCreateQuote() {
     supplier: filters.supplier,
     project: filters.project,
     author: filters.author,
+    salesPerson: filters.salesPerson,
     currency: filters.currency,
     quoteOutcome: filters.quoteOutcome,
     approximateSiteDeliveryDate:

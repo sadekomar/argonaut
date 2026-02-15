@@ -38,6 +38,7 @@ import { readQuotes } from "../_utils/read-quotes";
 import { useDeleteQuote } from "./use-quotes";
 import { useState } from "react";
 
+import Link from "next/link";
 import { EditQuoteModal } from "./edit-quote-modal";
 import { ViewQuoteModal } from "./view-quote-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
@@ -74,6 +75,12 @@ export interface Quote {
     firstName: string | null;
     lastName: string | null;
   };
+  salesPersonId: string | null;
+  salesPerson: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+  } | null;
   supplierId: string | null;
   supplier: {
     id: string;
@@ -127,6 +134,7 @@ export function QuotesTable() {
         "supplier",
         "project",
         "author",
+        "salesPerson",
         "value",
         "currency",
         "quoteOutcome",
@@ -149,6 +157,7 @@ export function QuotesTable() {
     supplier: parseAsArrayOf(parseAsString).withDefault([]),
     project: parseAsArrayOf(parseAsString).withDefault([]),
     author: parseAsArrayOf(parseAsString).withDefault([]),
+    salesPerson: parseAsArrayOf(parseAsString).withDefault([]),
     currency: parseAsArrayOf(parseAsString).withDefault([]),
     quoteOutcome: parseAsArrayOf(parseAsString).withDefault([]),
     approximateSiteDeliveryDate: parseAsString,
@@ -189,6 +198,7 @@ export function QuotesTable() {
         supplier: filters.supplier,
         project: filters.project,
         author: filters.author,
+        salesPerson: filters.salesPerson,
         currency: filters.currency,
         quoteOutcome: filters.quoteOutcome,
         approximateSiteDeliveryDate:
@@ -229,10 +239,13 @@ export function QuotesTable() {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} label="Reference" />
       ),
-      cell: ({ cell }) => (
-        <div className="font-medium">
+      cell: ({ row, cell }) => (
+        <Link
+          href={`/quotes/${row.original.id}`}
+          className="font-medium text-primary hover:underline"
+        >
           {cell.getValue<Quote["referenceNumber"]>()}
-        </div>
+        </Link>
       ),
       meta: {
         label: "Reference Number",
@@ -334,6 +347,36 @@ export function QuotesTable() {
         ),
         meta: {
           label: "Author",
+          variant: "multiSelect",
+          options: authorsInitialOptions,
+          icon: User,
+        },
+        enableColumnFilter: true,
+      }
+    ),
+    columnHelper.accessor(
+      (row) =>
+        row.salesPerson
+          ? `${row.salesPerson.firstName} ${row.salesPerson.lastName}`
+          : "N/A",
+      {
+        id: "salesPerson",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} label="Sales Person" />
+        ),
+        cell: ({ row }) => {
+          const sp = row.original.salesPerson;
+          if (!sp)
+            return <span className="text-muted-foreground">N/A</span>;
+          return (
+            <div className="flex items-center gap-1.5">
+              <User className="size-4 text-muted-foreground" />
+              {sp.firstName} {sp.lastName}
+            </div>
+          );
+        },
+        meta: {
+          label: "Sales Person",
           variant: "multiSelect",
           options: authorsInitialOptions,
           icon: User,

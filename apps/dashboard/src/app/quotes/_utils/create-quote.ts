@@ -47,6 +47,7 @@ export async function createQuote(data: QuoteForm) {
     contactPersonPhone,
     contactPersonEmail,
     contactPersonTitle,
+    salesPersonId,
     rfqId,
   } = data;
 
@@ -88,6 +89,7 @@ export async function createQuote(data: QuoteForm) {
         projectId: projectId,
         contactPersonId: contactPersonId,
         supplierId: supplierId,
+        salesPersonId: salesPersonId || null,
         approximateSiteDeliveryDate: approximateSiteDeliveryDate
           ? new Date(approximateSiteDeliveryDate)
           : null,
