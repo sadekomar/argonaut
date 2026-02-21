@@ -43,6 +43,7 @@ import { EditQuoteModal } from "./edit-quote-modal";
 import { ViewQuoteModal } from "./view-quote-modal";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 import { formatCurrency, formatDate, mapToSelectOptions } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 import { useDataTable } from "@/hooks/use-data-table";
 import { DataTable } from "@/components/data-table/data-table";
@@ -111,6 +112,7 @@ export interface Quote {
 
 export function QuotesTable() {
   const deleteQuote = useDeleteQuote();
+  const router = useRouter();
 
   const [selectedQuote, setSelectedQuote] = useState<Quote>();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -366,8 +368,7 @@ export function QuotesTable() {
         ),
         cell: ({ row }) => {
           const sp = row.original.salesPerson;
-          if (!sp)
-            return <span className="text-muted-foreground">N/A</span>;
+          if (!sp) return <span className="text-muted-foreground">N/A</span>;
           return (
             <div className="flex items-center gap-1.5">
               <User className="size-4 text-muted-foreground" />
@@ -504,11 +505,18 @@ export function QuotesTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
+                  router.push(`/quotes/${quote.id}`);
+                }}
+              >
+                Full View
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
                   setSelectedQuote(quote);
                   setIsViewModalOpen(true);
                 }}
               >
-                View
+                Quick View
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -517,14 +525,6 @@ export function QuotesTable() {
                 }}
               >
                 Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedQuote(quote);
-                  setIsCreateFollowUpModalOpen(true);
-                }}
-              >
-                Add follow-up
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"

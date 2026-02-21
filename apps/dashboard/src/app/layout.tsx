@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { ChangelogDialog } from "@/components/changelog-dialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +59,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <Toaster />
+                <ChangelogDialog />
               </SidebarInset>
             </SidebarProvider>
           </QueryProvider>

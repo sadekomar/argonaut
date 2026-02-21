@@ -46,11 +46,11 @@ const data = {
       url: "/quotes",
       icon: DollarSign,
     },
-    {
-      title: "Follow ups",
-      url: "/follow-ups",
-      icon: MessageCircle,
-    },
+    // {
+    //   title: "Follow ups",
+    //   url: "/follow-ups",
+    //   icon: MessageCircle,
+    // },
     {
       title: "RFQs",
       url: "/rfqs",
